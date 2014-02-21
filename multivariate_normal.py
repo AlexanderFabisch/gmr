@@ -63,6 +63,17 @@ class MultivariateNormal(object):
         inv_indices = np.ones(self.mean.shape[0], dtype=np.bool)
         inv_indices[indices] = False
         inv_indices = np.where(inv_indices)[0]
+
+        #A = self.covariance[np.ix_(indices, indices)]
+        #B = self.covariance[np.ix_(indices, inv_indices)]
+        #D = self.covariance[np.ix_(inv_indices, inv_indices)]
+        #D_prec = pinvh(D)
+        #conditional_cov = A - B.dot(D_prec).dot(B.T)
+        #conditional_prec = pinvh(conditional_cov)
+        #AB_prec = -conditional_prec.dot(B).dot(D_prec)
+        #conditional_mean = self.mean[indices] + B.dot(D_prec).dot(x - self.mean[inv_indices])
+        #return MultivariateNormal(mean=conditional_mean, covariance=conditional_cov)
+
         precision = pinvh(self.covariance)
         new_covariance = pinvh(precision[np.ix_(inv_indices, inv_indices)])
         new_mean = (self.mean[inv_indices] -
