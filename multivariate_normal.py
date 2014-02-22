@@ -32,18 +32,6 @@ class MultivariateNormal(object):
         """Get mean and covariance."""
         return self.mean, self.covariance
 
-    def to_ellipse(self, factor=1.0):
-        """Compute error ellipse.
-
-        An ellipse of equiprobable points.
-        """
-        vals, vecs = np.linalg.eigh(self.covariance)
-        order = vals.argsort()[::-1]
-        vals, vecs = vals[order], vecs[:, order]
-        angle = np.arctan2(*vecs[:, 0][::-1])
-        width, height = 2 * factor * np.sqrt(vals)
-        return angle, width, height
-
     def sample(self, n_samples):
         """Sample from multivariate normal distribution."""
         return random_state.multivariate_normal(self.mean, self.covariance,
@@ -96,15 +84,27 @@ class MultivariateNormal(object):
         covariance = cov_11 - regression_coeffs.dot(cov_12.T)
         return mean, covariance
 
+    def to_ellipse(self, factor=1.0):
+        """Compute error ellipse.
+
+        An ellipse of equiprobable points.
+        """
+        vals, vecs = np.linalg.eigh(self.covariance)
+        order = vals.argsort()[::-1]
+        vals, vecs = vals[order], vecs[:, order]
+        angle = np.arctan2(*vecs[:, 0][::-1])
+        width, height = 2 * factor * np.sqrt(vals)
+        return angle, width, height
+
 
 def plot_error_ellipse(ax, mvn):
-        from matplotlib.patches import Ellipse
-        for factor in np.linspace(0.25, 2.0, 8):
-            angle, width, height = mvn.to_ellipse(factor)
-            ell = Ellipse(xy=mvn.mean, width=width, height=height,
-                          angle=np.degrees(angle))
-            ell.set_alpha(0.25)
-            ax.add_artist(ell)
+    from matplotlib.patches import Ellipse
+    for factor in np.linspace(0.25, 2.0, 8):
+        angle, width, height = mvn.to_ellipse(factor)
+        ell = Ellipse(xy=mvn.mean, width=width, height=height,
+                        angle=np.degrees(angle))
+        ell.set_alpha(0.25)
+        ax.add_artist(ell)
 
 
 if __name__ == "__main__":
