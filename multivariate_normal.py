@@ -87,7 +87,8 @@ class MultivariateNormal(object):
         regression_coeffs = cov_12.dot(prec_22)
 
         if X.ndim == 2:
-            mean = self.mean[i1] + regression_coeffs.dot((X - self.mean[i2]).T).T
+            mean = self.mean[i1] + regression_coeffs.dot(
+                (X - self.mean[i2]).T).T
         elif X.ndim == 1:
             mean = self.mean[i1] + regression_coeffs.dot(X - self.mean[i2])
         else:
