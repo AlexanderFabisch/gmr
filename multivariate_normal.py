@@ -34,8 +34,8 @@ class MultivariateNormal(object):
 
     def sample(self, n_samples):
         """Sample from multivariate normal distribution."""
-        return random_state.multivariate_normal(self.mean, self.covariance,
-                                                size=(n_samples,))
+        return self.random_state.multivariate_normal(
+            self.mean, self.covariance, size=(n_samples,))
 
     def to_probability_density(self, X):
         """Compute probability density."""
