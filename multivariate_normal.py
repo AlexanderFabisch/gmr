@@ -3,10 +3,19 @@ from sklearn.utils import check_random_state
 from sklearn.utils.extmath import pinvh
 
 
+def invert_indices(n_features, indices):
+    inv = np.ones(n_features, dtype=np.bool)
+    inv[indices] = False
+    inv, = np.where(inv)
+    return inv
+
+
 class MultivariateNormal(object):
     """Multivariate normal distribution.
 
-    Some utility functions to deal with MVNs.
+    Some utility functions to deal with MVNs. See
+    http://en.wikipedia.org/wiki/Multivariate_normal_distribution
+    for more details.
     """
     def __init__(self, mean=None, covariance=None, random_state=None):
         self.mean = mean
@@ -14,7 +23,7 @@ class MultivariateNormal(object):
         self.random_state = check_random_state(random_state)
 
     def from_samples(self, X, bessels_correction=True):
-        """Compute empirical estimate of the mean and covariance."""
+        """MLE of the mean and covariance."""
         self.mean = np.mean(X, axis=0)
         self.covariance = np.cov(X, rowvar=0,
                                  bias=0 if bessels_correction else 1)
@@ -60,22 +69,31 @@ class MultivariateNormal(object):
 
     def condition(self, indices, x):
         """Conditional distribution over given indices."""
-        i2 = indices
-        i1 = np.ones(self.mean.shape[0], dtype=np.bool)
-        i1[i2] = False
-        i1, = np.where(i1)
+        mean, covariance = self._condition(invert_indices(self.mean.shape[0],
+                                                          indices), indices, x)
+        return MultivariateNormal(mean=mean, covariance=covariance,
+                                  random_state=self.random_state)
 
+    def predict(self, indices, x):
+        """Predict means and covariance of posteriors."""
+        return self._condition(invert_indices(self.mean.shape[0], indices),
+                               indices, x)
+
+    def _condition(self, i1, i2, X):
         cov_12 = self.covariance[np.ix_(i1, i2)]
         cov_11 = self.covariance[np.ix_(i1, i1)]
         cov_22 = self.covariance[np.ix_(i2, i2)]
         prec_22 = pinvh(cov_22)
+        regression_coeffs = cov_12.dot(prec_22)
 
-        mean = self.mean[i1] + cov_12.dot(prec_22).dot(x - self.mean[i2])
-        covariance = cov_11 - cov_12.dot(prec_22).dot(cov_12.T)
-        print "TODO"
-        print cov_11, cov_12.dot(prec_22).dot(cov_12.T)
-        return MultivariateNormal(mean=mean, covariance=covariance,
-                                  random_state=self.random_state)
+        if X.ndim == 2:
+            mean = self.mean[i1] + regression_coeffs.dot((X - self.mean[i2]).T).T
+        elif X.ndim == 1:
+            mean = self.mean[i1] + regression_coeffs.dot(X - self.mean[i2])
+        else:
+            raise ValueError("%d dimensions are not allowed for X!" % X.ndim)
+        covariance = cov_11 - regression_coeffs.dot(cov_12.T)
+        return mean, covariance
 
 
 def plot_error_ellipse(ax, mvn):
@@ -93,7 +111,7 @@ if __name__ == "__main__":
 
     random_state = check_random_state(0)
     mvn = MultivariateNormal(random_state=random_state)
-    X = random_state.multivariate_normal([0.0, 1.0], [[2.0, -1.5], [-1.5, 5.0]],
+    X = random_state.multivariate_normal([0.0, 1.0], [[0.5, -2.0], [-2.0, 5.0]],
                                          size=(10000,))
     mvn.from_samples(X)
     print(mvn.to_moments())
@@ -111,19 +129,9 @@ if __name__ == "__main__":
     marginalized = mvn.marginalize(np.array([0]))
     plt.plot(x, marginalized.to_probability_density(x[:, np.newaxis]))
 
-    mvn = MultivariateNormal(random_state=random_state)
-    X = random_state.multivariate_normal(
-        [0.0, 1.0, 2.0],
-        [[2.0, -1.5, 0.0],
-         [-1.5, 5.0, 0.0],
-         [ 0.0, 0.0, 1.0]],
-        size=(10000,)
-    )
-    mvn.from_samples(X)
-
     plt.figure()
     for x in np.linspace(-2, 2, 100):
-        conditioned = mvn.condition(np.array([0, 2]), np.array([x, x]))
+        conditioned = mvn.condition(np.array([0]), np.array([x]))
         y = np.linspace(-6, 6, 100)
         plt.plot(y, conditioned.to_probability_density(y[:, np.newaxis]).ravel())
 
