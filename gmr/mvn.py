@@ -13,7 +13,7 @@ def invert_indices(n_features, indices):
 class MVN(object):
     """Multivariate normal distribution.
 
-    Some utility functions to deal with MVNs. See
+    Some utility functions for MVNs. See
     http://en.wikipedia.org/wiki/Multivariate_normal_distribution
     for more details.
     """
@@ -23,18 +23,52 @@ class MVN(object):
         self.random_state = check_random_state(random_state)
 
     def from_samples(self, X, bessels_correction=True):
-        """MLE of the mean and covariance."""
+        """MLE of the mean and covariance.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Samples from the true function.
+
+        Returns
+        -------
+        self : MVN
+            This object.
+        """
         self.mean = np.mean(X, axis=0)
         self.covariance = np.cov(X, rowvar=0,
                                  bias=0 if bessels_correction else 1)
+        return self
 
     def sample(self, n_samples):
-        """Sample from multivariate normal distribution."""
+        """Sample from multivariate normal distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+
+        Returns
+        -------
+        X : array, shape (n_samples, n_features)
+            Samples from the MVN.
+        """
         return self.random_state.multivariate_normal(
             self.mean, self.covariance, size=(n_samples,))
 
     def to_probability_density(self, X):
-        """Compute probability density."""
+        """Compute probability density.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Data.
+
+        Returns
+        -------
+        p : array, shape (n_samples,)
+            Probability densities of data.
+        """
         X = np.atleast_2d(X)
         n_samples, n_features = X.shape
         precision = pinvh(self.covariance)
@@ -47,19 +81,63 @@ class MVN(object):
         return p
 
     def marginalize(self, indices):
-        """Marginalize over everything except the given indices."""
+        """Marginalize over everything except the given indices.
+
+        Parameters
+        ----------
+        indices : array, shape (n_new_features,)
+            Indices of dimensions that we want to keep.
+
+        Returns
+        -------
+        marginal : MVN
+            Marginal MVN distribution.
+        """
         return MVN(mean=self.mean[indices],
                    covariance=self.covariance[np.ix_(indices, indices)])
 
     def condition(self, indices, x):
-        """Conditional distribution over given indices."""
+        """Conditional distribution over given indices.
+
+        Parameters
+        ----------
+        indices : array, shape (n_new_features,)
+            Indices of dimensions that we want to condition.
+
+        x : array, shape (n_new_features,)
+            Values of the features that we know.
+
+        Returns
+        -------
+        conditional : MVN
+            Conditional MVN distribution p(Y | X=x).
+        """
         mean, covariance = self._condition(invert_indices(self.mean.shape[0],
                                                           indices), indices, x)
         return MVN(mean=mean, covariance=covariance,
                                   random_state=self.random_state)
 
     def predict(self, indices, X):
-        """Predict means and covariance of posteriors."""
+        """Predict means and covariance of posteriors.
+
+        Same as condition() but for multiple samples.
+
+        Parameters
+        ----------
+        indices : array, shape (n_features_1,)
+            Indices of dimensions that we want to condition.
+
+        X : array, shape (n_samples, n_features_1)
+            Values of the features that we know.
+
+        Returns
+        -------
+        Y : array, shape (n_samples, n_features_2)
+            Predicted means of missing values.
+
+        covariance : array, shape (n_features_2, n_features_2)
+            Covariance of the predicted features.
+        """
         return self._condition(invert_indices(self.mean.shape[0], indices),
                                indices, X)
 
@@ -83,7 +161,23 @@ class MVN(object):
     def to_ellipse(self, factor=1.0):
         """Compute error ellipse.
 
-        An ellipse of equiprobable points.
+        An error ellipse shows equiprobable points.
+
+        Parameters
+        ----------
+        factor : float
+            One means standard deviation.
+
+        Returns
+        -------
+        angle : float
+            Rotation angle of the ellipse.
+
+        width : float
+            Width of the ellipse.
+
+        height : float
+            Height of the ellipse.
         """
         vals, vecs = np.linalg.eigh(self.covariance)
         order = vals.argsort()[::-1]
@@ -94,6 +188,16 @@ class MVN(object):
 
 
 def plot_error_ellipse(ax, mvn):
+    """Plot error ellipse of MVN.
+
+    Parameters
+    ----------
+    ax : axis
+        Matplotlib axis.
+
+    mvn : MVN
+        Multivariate normal distribution.
+    """
     from matplotlib.patches import Ellipse
     for factor in np.linspace(0.25, 2.0, 8):
         angle, width, height = mvn.to_ellipse(factor)
