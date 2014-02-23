@@ -28,10 +28,6 @@ class MVN(object):
         self.covariance = np.cov(X, rowvar=0,
                                  bias=0 if bessels_correction else 1)
 
-    def to_moments(self):
-        """Get mean and covariance."""
-        return self.mean, self.covariance
-
     def sample(self, n_samples):
         """Sample from multivariate normal distribution."""
         return self.random_state.multivariate_normal(
@@ -51,10 +47,9 @@ class MVN(object):
         return p
 
     def marginalize(self, indices):
-        """Marginalize over given indices."""
-        return MVN(
-            mean=self.mean[indices],
-            covariance=self.covariance[np.ix_(indices, indices)])
+        """Marginalize over everything except the given indices."""
+        return MVN(mean=self.mean[indices],
+                   covariance=self.covariance[np.ix_(indices, indices)])
 
     def condition(self, indices, x):
         """Conditional distribution over given indices."""
