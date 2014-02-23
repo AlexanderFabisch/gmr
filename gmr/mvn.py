@@ -10,7 +10,7 @@ def invert_indices(n_features, indices):
     return inv
 
 
-class MultivariateNormal(object):
+class MVN(object):
     """Multivariate normal distribution.
 
     Some utility functions to deal with MVNs. See
@@ -52,7 +52,7 @@ class MultivariateNormal(object):
 
     def marginalize(self, indices):
         """Marginalize over given indices."""
-        return MultivariateNormal(
+        return MVN(
             mean=self.mean[indices],
             covariance=self.covariance[np.ix_(indices, indices)])
 
@@ -60,7 +60,7 @@ class MultivariateNormal(object):
         """Conditional distribution over given indices."""
         mean, covariance = self._condition(invert_indices(self.mean.shape[0],
                                                           indices), indices, x)
-        return MultivariateNormal(mean=mean, covariance=covariance,
+        return MVN(mean=mean, covariance=covariance,
                                   random_state=self.random_state)
 
     def predict(self, indices, X):
@@ -106,35 +106,3 @@ def plot_error_ellipse(ax, mvn):
                         angle=np.degrees(angle))
         ell.set_alpha(0.25)
         ax.add_artist(ell)
-
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
-    random_state = check_random_state(0)
-    mvn = MultivariateNormal(random_state=random_state)
-    X = random_state.multivariate_normal([0.0, 1.0], [[0.5, -2.0], [-2.0, 5.0]],
-                                         size=(10000,))
-    mvn.from_samples(X)
-    print(mvn.to_moments())
-    print(mvn.to_probability_density(X))
-    X = mvn.sample(n_samples=100)
-
-    plt.figure()
-    plot_error_ellipse(plt.gca(), mvn)
-    plt.scatter(X[:, 0], X[:, 1])
-    plt.xlim((-10, 10))
-    plt.ylim((-10, 10))
-
-    plt.figure()
-    x = np.linspace(-5, 5, 100)
-    marginalized = mvn.marginalize(np.array([0]))
-    plt.plot(x, marginalized.to_probability_density(x[:, np.newaxis]))
-
-    plt.figure()
-    for x in np.linspace(-2, 2, 100):
-        conditioned = mvn.condition(np.array([0]), np.array([x]))
-        y = np.linspace(-6, 6, 100)
-        plt.plot(y, conditioned.to_probability_density(y[:, np.newaxis]).ravel())
-
-    plt.show()

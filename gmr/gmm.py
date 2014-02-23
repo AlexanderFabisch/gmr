@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.utils import check_random_state
-from multivariate_normal import MultivariateNormal, plot_error_ellipse
+from .mvn import MVN, plot_error_ellipse
 
 
 class GMM(object):
@@ -37,7 +37,7 @@ class GMM(object):
             r_prev = r.copy()
             # Expectation
             for k in range(self.n_components):
-                r[k] = self.priors[k] * MultivariateNormal(
+                r[k] = self.priors[k] * MVN(
                     mean=self.means[k], covariance=self.covariances[k],
                     random_state=self.random_state).to_probability_density(X)
             r /= r.sum(axis=0)
@@ -61,13 +61,13 @@ class GMM(object):
         mvn_indices = self.random_state.choice(
             self.n_components, size=(n_samples,), p=self.priors)
         return np.array([
-            MultivariateNormal(
+            MVN(
                 mean=self.means[k], covariance=self.covariances[k],
                 random_state=self.random_state).sample(n_samples=1)[0]
             for k in mvn_indices])
 
     def to_probability_density(self, X):
-        P = [MultivariateNormal(
+        P = [MVN(
                  mean=self.means[k], covariance=self.covariances[k],
                  random_state=self.random_state).to_probability_density(X)
              for k in range(self.n_components)]
@@ -79,7 +79,7 @@ class GMM(object):
         means = np.ndarray((self.n_components, n_features))
         covariances = np.ndarray((self.n_components, n_features, n_features))
         for k in range(self.n_components):
-            mvn = MultivariateNormal(
+            mvn = MVN(
                 mean=self.means[k], covariance=self.covariances[k],
                 random_state=self.random_state)
             conditioned = mvn.condition(indices, x)
@@ -103,7 +103,7 @@ class GMM(object):
         """Compute error ellipses."""
         res = []
         for k in range(self.n_components):
-            mvn = MultivariateNormal(
+            mvn = MVN(
                 mean=self.means[k],
                 covariance=self.covariances[k],
                 random_state=self.random_state)
@@ -121,41 +121,3 @@ def plot_error_ellipses(ax, gmm, colors=None):
             if colors and i < len(colors):
                 ell.set_color(colors[i])
             ax.add_artist(ell)
-
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
-    random_state = check_random_state(0)
-    n_samples = 200
-    n_features = 2
-    X = np.ndarray((n_samples, n_features))
-    X[:n_samples / 2, :] = random_state.multivariate_normal(
-        [0.0, 1.0], [[0.5, -2.0], [-2.0, 5.0]], size=(n_samples / 2,))
-    X[-n_samples / 2:, :] = random_state.multivariate_normal(
-        [3.0, 1.0], [[3.0, 2.0], [2.0, 1.0]], size=(n_samples / 2,))
-
-    gmm = GMM(n_components=2, random_state=random_state)
-    gmm.from_samples(X)
-
-    cond = gmm.condition(np.array([1]), np.array([[0.5]]))
-    plt.figure()
-    X_test = np.linspace(-10, 10, 100)
-    plt.plot(X_test, cond.to_probability_density(X_test[:, np.newaxis]))
-
-    plt.figure()
-    plt.axis("equal")
-    plot_error_ellipses(plt.gca(), gmm, colors=["r", "g"])
-    plt.scatter(X[:, 0], X[:, 1])
-    plt.xlim((-10, 10))
-    plt.ylim((-10, 10))
-
-    plt.figure()
-    x, y = np.meshgrid(np.linspace(-10, 10, 100), np.linspace(-10, 10, 100))
-    X_test = np.vstack((x.ravel(), y.ravel())).T
-    p = gmm.to_probability_density(X_test)
-    p = p.reshape(*x.shape)
-    plt.contourf(x, y, p)
-    X_sampled = gmm.sample(100)
-    plt.scatter(X_sampled[:, 0], X_sampled[:, 1], c="r")
-    plt.show()

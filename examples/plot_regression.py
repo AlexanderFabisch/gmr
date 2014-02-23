@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.utils import check_random_state
-from multivariate_normal import MultivariateNormal
-from gmm import GMM, plot_error_ellipses
+from gmr import MVN, GMM, plot_error_ellipses
 
 
 if __name__ == "__main__":
@@ -13,7 +12,7 @@ if __name__ == "__main__":
     X[:, 0] = np.linspace(0, 2 * np.pi, n_samples)
     X[:, 1] = 1 - 3 * X[:, 0] + random_state.randn(n_samples)
 
-    mvn = MultivariateNormal(random_state=0)
+    mvn = MVN(random_state=0)
     mvn.from_samples(X)
 
     plt.scatter(X[:, 0], X[:, 1])
