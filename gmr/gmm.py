@@ -5,7 +5,7 @@ from .mvn import MVN, plot_error_ellipse
 
 class GMM(object):
     def __init__(self, n_components, priors=None, means=None, covariances=None,
-                 verbose=1, random_state=None):
+                 verbose=0, random_state=None):
         self.n_components = n_components
         self.priors = priors
         self.means = means
