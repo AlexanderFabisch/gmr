@@ -16,10 +16,27 @@ class MVN(object):
     Some utility functions for MVNs. See
     http://en.wikipedia.org/wiki/Multivariate_normal_distribution
     for more details.
+
+    Parameters
+    ----------
+    mean : array, shape (n_features), optional
+        Mean of the MVN.
+
+    covariance : array, shape (n_features, n_features), optional
+        Covariance of the MVN.
+
+    verbose : int, optional
+        Verbosity level.
+
+    random_state : int or RandomState, optional
+        If an integer is given, it fixes the seed. Defaults to the global numpy
+        random number generator.
     """
-    def __init__(self, mean=None, covariance=None, random_state=None):
+    def __init__(self, mean=None, covariance=None, verbose=0,
+                 random_state=None):
         self.mean = mean
         self.covariance = covariance
+        self.verbose = verbose
         self.random_state = check_random_state(random_state)
 
     def from_samples(self, X, bessels_correction=True):

@@ -4,6 +4,29 @@ from .mvn import MVN, plot_error_ellipse
 
 
 class GMM(object):
+    """Gaussian Mixture Model.
+
+    Parameters
+    ----------
+    n_components : int
+        Number of MVNs that compose the GMM.
+
+    priors : array, shape (n_components,), optional
+        Weights of the components.
+
+    means : array, shape (n_components, n_features), optional
+        Means of the components.
+
+    covariances : array, shape (n_components, n_features, n_features), optional
+        Covariances of the components.
+
+    verbose : int, optional
+        Verbosity level.
+
+    random_state : int or RandomState, optional
+        If an integer is given, it fixes the seed. Defaults to the global numpy
+        random number generator.
+    """
     def __init__(self, n_components, priors=None, means=None, covariances=None,
                  verbose=0, random_state=None):
         self.n_components = n_components
