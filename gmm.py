@@ -67,24 +67,37 @@ class GMM(object):
             for k in mvn_indices])
 
     def to_probability_density(self, X):
-        p = 0.0
-        for k in range(self.n_components):
-            p += self.priors[k] * MultivariateNormal(
-                mean=self.means[k], covariance=self.covariances[k],
-                random_state=self.random_state).to_probability_density(X)
-        return p
-
-    def marginalize(self, indices):
-        pass
-        # TODO
+        P = [MultivariateNormal(
+                 mean=self.means[k], covariance=self.covariances[k],
+                 random_state=self.random_state).to_probability_density(X)
+             for k in range(self.n_components)]
+        return np.dot(self.priors, P)
 
     def condition(self, indices, x):
-        pass
-        # TODO
+        n_features = self.means.shape[1] - len(indices)
+        priors = np.ndarray(self.n_components)
+        means = np.ndarray((self.n_components, n_features))
+        covariances = np.ndarray((self.n_components, n_features, n_features))
+        for k in range(self.n_components):
+            mvn = MultivariateNormal(
+                mean=self.means[k], covariance=self.covariances[k],
+                random_state=self.random_state)
+            conditioned = mvn.condition(indices, x)
+            priors[k] = (self.priors[k] *
+                mvn.marginalize(indices).to_probability_density(x))
+            means[k] = conditioned.mean
+            covariances[k] = conditioned.covariance
+        priors /= priors.sum()
+        return GMM(n_components=self.n_components, priors=priors, means=means,
+                   covariances=covariances, random_state=self.random_state)
 
-    def predict(self, indices, x):
-        pass
-        # TODO
+    def predict(self, indices, X):
+        """Mean prediction."""
+        Y = []
+        for x in X:
+            conditioned = self.condition(indices, x)
+            Y.append(conditioned.priors.dot(conditioned.means))
+        return np.array(Y)
 
     def to_ellipses(self, factor=1.0):
         """Compute error ellipses."""
@@ -124,6 +137,11 @@ if __name__ == "__main__":
 
     gmm = GMM(n_components=2, random_state=random_state)
     gmm.from_samples(X)
+
+    cond = gmm.condition(np.array([1]), np.array([[0.5]]))
+    plt.figure()
+    X_test = np.linspace(-10, 10, 100)
+    plt.plot(X_test, cond.to_probability_density(X_test[:, np.newaxis]))
 
     plt.figure()
     plt.axis("equal")

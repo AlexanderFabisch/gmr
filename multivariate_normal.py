@@ -39,6 +39,7 @@ class MultivariateNormal(object):
 
     def to_probability_density(self, X):
         """Compute probability density."""
+        X = np.atleast_2d(X)
         n_samples, n_features = X.shape
         precision = pinvh(self.covariance)
         d = X - self.mean
@@ -62,10 +63,10 @@ class MultivariateNormal(object):
         return MultivariateNormal(mean=mean, covariance=covariance,
                                   random_state=self.random_state)
 
-    def predict(self, indices, x):
+    def predict(self, indices, X):
         """Predict means and covariance of posteriors."""
         return self._condition(invert_indices(self.mean.shape[0], indices),
-                               indices, x)
+                               indices, X)
 
     def _condition(self, i1, i2, X):
         cov_12 = self.covariance[np.ix_(i1, i2)]
