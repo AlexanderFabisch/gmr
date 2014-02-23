@@ -1,3 +1,14 @@
+"""
+=====================================
+Linear Gaussian Models for Regression
+=====================================
+
+In this example, we use a MVN to approximate a linear function and a mixture
+of MVNs to approximate a nonlinear function. We estimate p(x, y) first and
+then we compute the conditional distribution p(y | x).
+"""
+print(__doc__)
+
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.utils import check_random_state

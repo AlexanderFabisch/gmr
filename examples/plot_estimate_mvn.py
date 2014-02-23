@@ -1,3 +1,14 @@
+"""
+======================================================
+Estimate Multivariate Normal Distribution from Samples
+======================================================
+
+The maximum likelihood estimate (MLE) of an MVN can be computed directly. Then
+we can sample from the estimated distribution or compute the marginal
+distributions.
+"""
+print(__doc__)
+
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.utils import check_random_state
