@@ -13,9 +13,9 @@ def setup_package():
         version="1.0",
         author="Alexander Fabisch",
         author_email="afabisch@googlemail.com",
+        url="https://github.com/AlexanderFabisch/gmr",
         description="Gaussian Mixture Regression",
-        long_description="Gaussian Mixture Models (GMMs) for clustering and "
-                         "regression.",
+        long_description=open('README.rst').read(),
         license="new BSD",
         classifiers=[
             "Intended Audience :: Science/Research",
