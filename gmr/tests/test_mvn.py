@@ -5,6 +5,7 @@ from gmr import MVN
 
 
 def test_estimate_moments():
+    """Test moments estimated from samples and sampling from MVN."""
     random_state = check_random_state(0)
 
     actual_mean = np.array([0.0, 1.0])
@@ -24,7 +25,23 @@ def test_estimate_moments():
     assert_less(np.linalg.norm(mvn2.covariance - actual_covariance), 0.03)
 
 
+def test_probability_density():
+    """Test PDF of MVN."""
+    random_state = check_random_state(0)
+
+    mean = np.array([0.0, 1.0])
+    covariance = np.array([[0.5, -1.0], [-1.0, 5.0]])
+    mvn = MVN(mean, covariance, random_state=random_state)
+
+    x = np.linspace(-100, 100, 201)
+    X = np.vstack(map(np.ravel, np.meshgrid(x, x))).T
+    p = mvn.to_probability_density(X)
+    approx_int = np.sum(p) * ((x[-1] - x[0]) / 201) ** 2
+    assert_less(np.abs(1.0 - approx_int), 0.01)
+
+
 def test_marginal_distribution():
+    """Test moments from marginal MVN."""
     random_state = check_random_state(0)
 
     mean = np.array([0.0, 1.0])

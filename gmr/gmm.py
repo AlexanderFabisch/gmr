@@ -73,7 +73,7 @@ class GMM(object):
                                                     self.n_components)]
 
         if self.covariances is None:
-            self.covariances = np.ndarray((n_samples, n_features, n_features))
+            self.covariances = np.empty((n_samples, n_features, n_features))
             for k in range(self.n_components):
                 self.covariances[k] = np.eye(n_features)
 
@@ -160,9 +160,9 @@ class GMM(object):
             Conditional GMM distribution p(Y | X=x).
         """
         n_features = self.means.shape[1] - len(indices)
-        priors = np.ndarray(self.n_components)
-        means = np.ndarray((self.n_components, n_features))
-        covariances = np.ndarray((self.n_components, n_features, n_features))
+        priors = np.empty(self.n_components)
+        means = np.empty((self.n_components, n_features))
+        covariances = np.empty((self.n_components, n_features, n_features))
         for k in range(self.n_components):
             mvn = MVN(
                 mean=self.means[k], covariance=self.covariances[k],

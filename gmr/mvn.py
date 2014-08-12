@@ -92,7 +92,7 @@ class MVN(object):
         d = X - self.mean
         normalization = 1 / np.sqrt((2 * np.pi) ** n_features *
                                     np.linalg.det(self.covariance))
-        p = np.ndarray(n_samples)
+        p = np.empty(n_samples)
         for n in range(n_samples):
             p[n] = normalization * np.exp(-0.5 * d[n].dot(precision).dot(d[n]))
         return p
@@ -132,7 +132,7 @@ class MVN(object):
         mean, covariance = self._condition(invert_indices(self.mean.shape[0],
                                                           indices), indices, x)
         return MVN(mean=mean, covariance=covariance,
-                                  random_state=self.random_state)
+                   random_state=self.random_state)
 
     def predict(self, indices, X):
         """Predict means and covariance of posteriors.
