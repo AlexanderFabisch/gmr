@@ -77,29 +77,29 @@ class GMM(object):
             for k in range(self.n_components):
                 self.covariances[k] = np.eye(n_features)
 
-        r = np.zeros((self.n_components, n_samples))  # Responsibilities
+        responsibilities = np.zeros((self.n_components, n_samples))
         for i in range(n_iter):
-            r_prev = r.copy()
+            r_prev = responsibilities.copy()
             # Expectation
             for k in range(self.n_components):
-                r[k] = self.priors[k] * MVN(
+                responsibilities[k] = self.priors[k] * MVN(
                     mean=self.means[k], covariance=self.covariances[k],
                     random_state=self.random_state).to_probability_density(X)
-            r /= r.sum(axis=0)
+            responsibilities /= responsibilities.sum(axis=0)
 
-            if np.linalg.norm(r - r_prev) < responsibilities_diff:
+            if np.linalg.norm(responsibilities - r_prev) < responsibilities_diff:
                 if self.verbose:
                     print("EM converged.")
                 break
 
             # Maximization
-            w = r.sum(axis=1)
+            w = responsibilities.sum(axis=1)
             self.priors = w / w.sum()
 
             for k in range(self.n_components):
-                self.means[k] = r[k].dot(X) / w[k]
+                self.means[k] = responsibilities[k].dot(X) / w[k]
                 Xm = X - self.means[k]
-                self.covariances[k] = (r[k, :, np.newaxis] * Xm
+                self.covariances[k] = (responsibilities[k, :, np.newaxis] * Xm
                                        ).T.dot(Xm) / w[k]
 
         return self
@@ -119,11 +119,10 @@ class GMM(object):
         """
         mvn_indices = self.random_state.choice(
             self.n_components, size=(n_samples,), p=self.priors)
-        return np.array([
-            MVN(
-                mean=self.means[k], covariance=self.covariances[k],
-                random_state=self.random_state).sample(n_samples=1)[0]
-            for k in mvn_indices])
+        return np.array(
+            [MVN(mean=self.means[k], covariance=self.covariances[k],
+                 random_state=self.random_state).sample(n_samples=1)[0]
+             for k in mvn_indices])
 
     def to_probability_density(self, X):
         """Compute probability density.
