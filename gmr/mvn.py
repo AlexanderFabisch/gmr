@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.utils import check_random_state
 from sklearn.utils.extmath import pinvh
+import scipy as sp
 
 
 def invert_indices(n_features, indices):
@@ -88,14 +89,15 @@ class MVN(object):
         """
         X = np.atleast_2d(X)
         n_samples, n_features = X.shape
-        precision = pinvh(self.covariance)
-        d = X - self.mean
-        normalization = 1 / np.sqrt((2 * np.pi) ** n_features *
-                                    np.linalg.det(self.covariance))
-        p = np.empty(n_samples)
-        for n in range(n_samples):
-            p[n] = normalization * np.exp(-0.5 * d[n].dot(precision).dot(d[n]))
-        return p
+
+        L = sp.linalg.cholesky(self.covariance, lower=True)
+        D = X - self.mean
+        cov_sol = sp.linalg.solve_triangular(L, D.T, lower=True).T
+        cov_det = sp.linalg.det(self.covariance)
+
+        DpD = np.sum(cov_sol ** 2, axis=1)
+        normalization = 1.0 / np.sqrt(4.0 * np.pi ** n_features * cov_det)
+        return normalization * np.exp(-0.5 * DpD)
 
     def marginalize(self, indices):
         """Marginalize over everything except the given indices.
