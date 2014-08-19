@@ -70,3 +70,16 @@ def test_conditional_distribution():
     conditional = mvn.condition(np.array([0]), np.array([0.5]))
     assert_equal(conditional.mean, np.array([1.0]))
     assert_equal(conditional.covariance, np.array([5.0]))
+
+def test_ellipse():
+    """Test equiprobable ellipse."""
+    random_state = check_random_state(0)
+
+    mean = np.array([0.0, 1.0])
+    covariance = np.array([[0.5, 0.0], [0.0, 5.0]])
+    mvn = MVN(mean=mean, covariance=covariance, random_state=random_state)
+
+    angle, width, height = mvn.to_ellipse()
+    assert_equal(angle, 0.5 * np.pi)
+    assert_equal(width, np.sqrt(5.0))
+    assert_equal(height, np.sqrt(0.5))

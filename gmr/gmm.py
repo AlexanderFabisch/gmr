@@ -237,10 +237,10 @@ def plot_error_ellipses(ax, gmm, colors=None):
         Gaussian mixture model.
     """
     from matplotlib.patches import Ellipse
-    for factor in np.linspace(0.25, 2.0, 8):
+    for factor in np.linspace(0.5, 4.0, 8):
         for i, (mean, (angle, width, height)) in enumerate(gmm.to_ellipses(factor)):
             ell = Ellipse(xy=mean, width=width, height=height,
-                        angle=np.degrees(angle))
+                          angle=np.degrees(angle))
             ell.set_alpha(0.25)
             if colors and i < len(colors):
                 ell.set_color(colors[i])

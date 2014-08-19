@@ -202,7 +202,7 @@ class MVN(object):
         order = vals.argsort()[::-1]
         vals, vecs = vals[order], vecs[:, order]
         angle = np.arctan2(*vecs[:, 0][::-1])
-        width, height = 2 * factor * np.sqrt(vals)
+        width, height = factor * np.sqrt(vals)
         return angle, width, height
 
 
@@ -218,9 +218,9 @@ def plot_error_ellipse(ax, mvn):
         Multivariate normal distribution.
     """
     from matplotlib.patches import Ellipse
-    for factor in np.linspace(0.25, 2.0, 8):
+    for factor in np.linspace(0.5, 4.0, 8):
         angle, width, height = mvn.to_ellipse(factor)
         ell = Ellipse(xy=mvn.mean, width=width, height=height,
-                        angle=np.degrees(angle))
+                      angle=np.degrees(angle))
         ell.set_alpha(0.25)
         ax.add_artist(ell)
