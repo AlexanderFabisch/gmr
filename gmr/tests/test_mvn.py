@@ -47,6 +47,26 @@ def test_marginal_distribution():
     mean = np.array([0.0, 1.0])
     covariance = np.array([[0.5, -1.0], [-1.0, 5.0]])
     mvn = MVN(mean=mean, covariance=covariance, random_state=random_state)
+
     marginalized = mvn.marginalize(np.array([0]))
     assert_equal(marginalized.mean, np.array([0.0]))
     assert_equal(marginalized.covariance, np.array([0.5]))
+    marginalized = mvn.marginalize(np.array([1]))
+    assert_equal(marginalized.mean, np.array([1.0]))
+    assert_equal(marginalized.covariance, np.array([5.0]))
+
+
+def test_conditional_distribution():
+    """Test moments from conditional MVN."""
+    random_state = check_random_state(0)
+
+    mean = np.array([0.0, 1.0])
+    covariance = np.array([[0.5, 0.0], [0.0, 5.0]])
+    mvn = MVN(mean=mean, covariance=covariance, random_state=random_state)
+
+    conditional = mvn.condition(np.array([1]), np.array([5.0]))
+    assert_equal(conditional.mean, np.array([0.0]))
+    assert_equal(conditional.covariance, np.array([0.5]))
+    conditional = mvn.condition(np.array([0]), np.array([0.5]))
+    assert_equal(conditional.mean, np.array([1.0]))
+    assert_equal(conditional.covariance, np.array([5.0]))
