@@ -1,30 +1,94 @@
 import numpy as np
 from sklearn.utils import check_random_state
-from nose.tools import assert_less
+from nose.tools import assert_equal, assert_less
+from numpy.testing import assert_array_almost_equal
 from gmr import GMM
+
+
+random_state = check_random_state(0)
+
+means = np.array([[0.0, 1.0],
+                  [2.0, -1.0]])
+covariances = np.array([[[0.5, -1.0], [-1.0, 5.0]],
+                        [[5.0, 1.0], [1.0, 0.5]]])
+X1 = random_state.multivariate_normal(means[0], covariances[0], size=(50000,))
+X2 = random_state.multivariate_normal(means[1], covariances[1], size=(50000,))
+X = np.vstack((X1, X2))
 
 
 def test_estimate_moments():
     """Test moments estimated from samples and sampling from GMM."""
-    random_state = check_random_state(0)
+    global X
+    global random_state
 
-    actual_mean1 = np.array([0.0, 1.0])
-    actual_covariance1 = np.array([[0.5, -1.0], [-1.0, 5.0]])
-    X1 = random_state.multivariate_normal(actual_mean1, actual_covariance1,
-                                          size=(50000,))
-    actual_mean2 = np.array([2.0, -1.0])
-    actual_covariance2 = np.array([[5.0, 1.0], [1.0, 0.5]])
-    X2 = random_state.multivariate_normal(actual_mean2, actual_covariance2,
-                                          size=(50000,))
-    X = np.vstack((X1, X2))
     gmm = GMM(n_components=2, random_state=random_state)
     gmm.from_samples(X)
-    assert_less(np.linalg.norm(gmm.means[0] - actual_mean1), 0.005)
-    assert_less(np.linalg.norm(gmm.covariances[0] - actual_covariance1), 0.01)
+    assert_less(np.linalg.norm(gmm.means[0] - means[0]), 0.005)
+    assert_less(np.linalg.norm(gmm.covariances[0] - covariances[0]), 0.01)
+    assert_less(np.linalg.norm(gmm.means[1] - means[1]), 0.01)
+    assert_less(np.linalg.norm(gmm.covariances[1] - covariances[1]), 0.03)
 
     X = gmm.sample(n_samples=100000)
 
     gmm = GMM(n_components=2, random_state=random_state)
     gmm.from_samples(X)
-    assert_less(np.linalg.norm(gmm.means[0] - actual_mean1), 0.01)
-    assert_less(np.linalg.norm(gmm.covariances[0] - actual_covariance1), 0.025)
+    assert_less(np.linalg.norm(gmm.means[0] - means[0]), 0.01)
+    assert_less(np.linalg.norm(gmm.covariances[0] - covariances[0]), 0.03)
+    assert_less(np.linalg.norm(gmm.means[1] - means[1]), 0.01)
+    assert_less(np.linalg.norm(gmm.covariances[1] - covariances[1]), 0.04)
+
+
+def test_probability_density():
+    """Test PDF of GMM."""
+    global X
+    global random_state
+
+    gmm = GMM(n_components=2, random_state=random_state)
+    gmm.from_samples(X)
+
+    x = np.linspace(-100, 100, 201)
+    X = np.vstack(map(np.ravel, np.meshgrid(x, x))).T
+    p = gmm.to_probability_density(X)
+    approx_int = np.sum(p) * ((x[-1] - x[0]) / 201) ** 2
+    assert_less(np.abs(1.0 - approx_int), 0.01)
+
+
+def test_conditional_distribution():
+    """Test moments from conditional GMM."""
+    random_state = check_random_state(0)
+
+    gmm = GMM(n_components=2, priors=np.array([0.5, 0.5]), means=means,
+              covariances=covariances, random_state=random_state)
+
+    conditional = gmm.condition(np.array([1]), np.array([1.0]))
+    assert_array_almost_equal(conditional.means[0], np.array([0.0]))
+    assert_array_almost_equal(conditional.covariances[0], np.array([[0.3]]))
+    conditional = gmm.condition(np.array([0]), np.array([2.0]))
+    assert_array_almost_equal(conditional.means[1], np.array([-1.0]))
+    assert_array_almost_equal(conditional.covariances[1], np.array([[0.3]]))
+
+
+def test_ellipses():
+    """Test equiprobable ellipses."""
+    random_state = check_random_state(0)
+
+    means = np.array([[0.0, 1.0],
+                      [2.0, -1.0]])
+    covariances = np.array([[[0.5, 0.0], [0.0, 5.0]],
+                            [[5.0, 0.0], [0.0, 0.5]]])
+
+    gmm = GMM(n_components=2, priors=np.array([0.5, 0.5]), means=means,
+              covariances=covariances, random_state=random_state)
+    ellipses = gmm.to_ellipses()
+
+    mean, (angle, width, height) = ellipses[0]
+    assert_array_almost_equal(means[0], mean)
+    assert_equal(angle, 0.5 * np.pi)
+    assert_equal(width, np.sqrt(5.0))
+    assert_equal(height, np.sqrt(0.5))
+
+    mean, (angle, width, height) = ellipses[1]
+    assert_array_almost_equal(means[1], mean)
+    assert_equal(angle, 0.0)
+    assert_equal(width, np.sqrt(5.0))
+    assert_equal(height, np.sqrt(0.5))

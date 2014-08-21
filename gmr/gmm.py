@@ -188,12 +188,11 @@ class GMM(object):
         means = np.empty((self.n_components, n_features))
         covariances = np.empty((self.n_components, n_features, n_features))
         for k in range(self.n_components):
-            mvn = MVN(
-                mean=self.means[k], covariance=self.covariances[k],
-                random_state=self.random_state)
+            mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
+                      random_state=self.random_state)
             conditioned = mvn.condition(indices, x)
             priors[k] = (self.priors[k] *
-                mvn.marginalize(indices).to_probability_density(x))
+                         mvn.marginalize(indices).to_probability_density(x))
             means[k] = conditioned.mean
             covariances[k] = conditioned.covariance
         priors /= priors.sum()
@@ -218,11 +217,13 @@ class GMM(object):
         Y : array, shape (n_samples, n_features_2)
             Predicted means of missing values.
         """
-        Y = []
-        for x in X:
-            conditioned = self.condition(indices, x)
-            Y.append(conditioned.priors.dot(conditioned.means))
-        return np.array(Y)
+        n_samples, n_features_1 = X.shape
+        n_features_2 = self.means.shape[1] - n_features_1
+        Y = np.empty((n_samples, n_features_2))
+        for n in range(n_samples):
+            conditioned = self.condition(indices, X[n])
+            Y[n] = conditioned.priors.dot(conditioned.means)
+        return Y
 
     def to_ellipses(self, factor=1.0):
         """Compute error ellipses.
@@ -242,10 +243,8 @@ class GMM(object):
         """
         res = []
         for k in range(self.n_components):
-            mvn = MVN(
-                mean=self.means[k],
-                covariance=self.covariances[k],
-                random_state=self.random_state)
+            mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
+                      random_state=self.random_state)
             res.append((self.means[k], mvn.to_ellipse(factor)))
         return np.array(res)
 
