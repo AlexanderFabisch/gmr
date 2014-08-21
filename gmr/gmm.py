@@ -77,15 +77,11 @@ class GMM(object):
             for k in range(self.n_components):
                 self.covariances[k] = np.eye(n_features)
 
-        responsibilities = np.zeros((self.n_components, n_samples))
+        responsibilities = np.zeros((n_samples, self.n_components))
         for i in range(n_iter):
-            r_prev = responsibilities.copy()
+            r_prev = responsibilities
             # Expectation
-            for k in range(self.n_components):
-                responsibilities[k] = self.priors[k] * MVN(
-                    mean=self.means[k], covariance=self.covariances[k],
-                    random_state=self.random_state).to_probability_density(X)
-            responsibilities /= responsibilities.sum(axis=0)
+            responsibilities = self.to_responsibilities(X)
 
             if np.linalg.norm(responsibilities - r_prev) < responsibilities_diff:
                 if self.verbose:
@@ -93,13 +89,13 @@ class GMM(object):
                 break
 
             # Maximization
-            w = responsibilities.sum(axis=1)
+            w = responsibilities.sum(axis=0)
             self.priors = w / w.sum()
 
             for k in range(self.n_components):
-                self.means[k] = responsibilities[k].dot(X) / w[k]
+                self.means[k] = responsibilities[:, k].dot(X) / w[k]
                 Xm = X - self.means[k]
-                self.covariances[k] = (responsibilities[k, :, np.newaxis] * Xm
+                self.covariances[k] = (responsibilities[:, k, np.newaxis] * Xm
                                        ).T.dot(Xm) / w[k]
 
         return self
@@ -131,6 +127,27 @@ class GMM(object):
                 MVN(mean=self.means[k], covariance=self.covariances[k],
                     random_state=self.random_state).sample(n_samples=n_samples)
         return samples
+
+    def to_responsibilities(self, X):
+        """Compute responsibilities of each MVN for each sample.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Data.
+
+        Returns
+        -------
+        r : array, shape (n_samples, n_components)
+        """
+        n_samples = X.shape[0]
+        responsibilities = np.empty((n_samples, self.n_components))
+        for k in range(self.n_components):
+            responsibilities[:, k] = self.priors[k] * MVN(
+                mean=self.means[k], covariance=self.covariances[k],
+                random_state=self.random_state).to_probability_density(X)
+        responsibilities /= responsibilities.sum(axis=1)[:, np.newaxis]
+        return responsibilities
 
     def to_probability_density(self, X):
         """Compute probability density.
