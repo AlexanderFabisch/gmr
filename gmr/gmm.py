@@ -119,10 +119,18 @@ class GMM(object):
         """
         mvn_indices = self.random_state.choice(
             self.n_components, size=(n_samples,), p=self.priors)
-        return np.array(
-            [MVN(mean=self.means[k], covariance=self.covariances[k],
-                 random_state=self.random_state).sample(n_samples=1)[0]
-             for k in mvn_indices])
+        mvn_indices.sort()
+        split_indices = np.hstack((
+            [0], np.append(np.nonzero(np.diff(mvn_indices))[0] + 1,
+                           n_samples)))
+        clusters = np.unique(mvn_indices)
+        lens = np.diff(split_indices)
+        samples = np.empty((n_samples, self.means.shape[1]))
+        for i, (k, n_samples) in enumerate(zip(clusters, lens)):
+            samples[split_indices[i]:split_indices[i + 1]] = \
+                MVN(mean=self.means[k], covariance=self.covariances[k],
+                    random_state=self.random_state).sample(n_samples=n_samples)
+        return samples
 
     def to_probability_density(self, X):
         """Compute probability density.

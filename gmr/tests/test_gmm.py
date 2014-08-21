@@ -27,4 +27,4 @@ def test_estimate_moments():
     gmm = GMM(n_components=2, random_state=random_state)
     gmm.from_samples(X)
     assert_less(np.linalg.norm(gmm.means[0] - actual_mean1), 0.01)
-    assert_less(np.linalg.norm(gmm.covariances[0] - actual_covariance1), 0.015)
+    assert_less(np.linalg.norm(gmm.covariances[0] - actual_covariance1), 0.025)
