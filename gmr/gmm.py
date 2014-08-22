@@ -36,7 +36,7 @@ class GMM(object):
         self.verbose = verbose
         self.random_state = check_random_state(random_state)
 
-    def from_samples(self, X, responsibilities_diff=1e-4, n_iter=100):
+    def from_samples(self, X, R_diff=1e-4, n_iter=100):
         """MLE of the mean and covariance.
 
         Expectation-maximization is used to infer the model parameters. The
@@ -48,7 +48,7 @@ class GMM(object):
         X : array-like, shape (n_samples, n_features)
             Samples from the true function.
 
-        responsibilities_diff : float
+        R_diff : float
             Minimum allowed difference of responsibilities between successive
             EM iterations.
 
@@ -68,9 +68,9 @@ class GMM(object):
 
         if self.means is None:
             # TODO k-means++
-            indices = np.arange(n_samples)
-            self.means = X[self.random_state.choice(indices,
-                                                    self.n_components)]
+            indices = self.random_state.choice(
+                np.arange(n_samples), self.n_components)
+            self.means = X[indices]
 
         if self.covariances is None:
             self.covariances = np.empty((self.n_components, n_features,
@@ -78,26 +78,24 @@ class GMM(object):
             for k in range(self.n_components):
                 self.covariances[k] = np.eye(n_features)
 
-        responsibilities = np.zeros((n_samples, self.n_components))
+        R = np.zeros((n_samples, self.n_components))
         for i in range(n_iter):
-            r_prev = responsibilities
+            R_prev = R
             # Expectation
-            responsibilities = self.to_responsibilities(X)
+            R = self.to_responsibilities(X)
 
-            if np.linalg.norm(responsibilities - r_prev) < responsibilities_diff:
+            if np.linalg.norm(R - R_prev) < R_diff:
                 if self.verbose:
                     print("EM converged.")
                 break
 
             # Maximization
-            w = responsibilities.sum(axis=0)
+            w = R.sum(axis=0)
             self.priors = w / w.sum()
-
             for k in range(self.n_components):
-                self.means[k] = responsibilities[:, k].dot(X) / w[k]
+                self.means[k] = R[:, k].dot(X) / w[k]
                 Xm = X - self.means[k]
-                self.covariances[k] = (responsibilities[:, k, np.newaxis] * Xm
-                                       ).T.dot(Xm) / w[k]
+                self.covariances[k] = (R[:, k, np.newaxis] * Xm).T.dot(Xm) / w[k]
 
         return self
 
@@ -124,9 +122,9 @@ class GMM(object):
         lens = np.diff(split_indices)
         samples = np.empty((n_samples, self.means.shape[1]))
         for i, (k, n_samples) in enumerate(zip(clusters, lens)):
-            samples[split_indices[i]:split_indices[i + 1]] = \
-                MVN(mean=self.means[k], covariance=self.covariances[k],
-                    random_state=self.random_state).sample(n_samples=n_samples)
+            samples[split_indices[i]:split_indices[i + 1]] = MVN(
+                mean=self.means[k], covariance=self.covariances[k],
+                random_state=self.random_state).sample(n_samples=n_samples)
         return samples
 
     def to_responsibilities(self, X):
@@ -139,16 +137,16 @@ class GMM(object):
 
         Returns
         -------
-        r : array, shape (n_samples, n_components)
+        R : array, shape (n_samples, n_components)
         """
         n_samples = X.shape[0]
-        responsibilities = np.empty((n_samples, self.n_components))
+        R = np.empty((n_samples, self.n_components))
         for k in range(self.n_components):
-            responsibilities[:, k] = self.priors[k] * MVN(
+            R[:, k] = self.priors[k] * MVN(
                 mean=self.means[k], covariance=self.covariances[k],
                 random_state=self.random_state).to_probability_density(X)
-        responsibilities /= responsibilities.sum(axis=1)[:, np.newaxis]
-        return responsibilities
+        R /= R.sum(axis=1)[:, np.newaxis]
+        return R
 
     def to_probability_density(self, X):
         """Compute probability density.
