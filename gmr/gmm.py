@@ -115,9 +115,8 @@ class GMM(object):
         mvn_indices = self.random_state.choice(
             self.n_components, size=(n_samples,), p=self.priors)
         mvn_indices.sort()
-        split_indices = np.hstack((
-            [0], np.append(np.nonzero(np.diff(mvn_indices))[0] + 1,
-                           n_samples)))
+        split_indices = np.hstack(
+            ((0,), np.nonzero(np.diff(mvn_indices))[0] + 1, (n_samples,)))
         clusters = np.unique(mvn_indices)
         lens = np.diff(split_indices)
         samples = np.empty((n_samples, self.means.shape[1]))
@@ -245,7 +244,7 @@ class GMM(object):
             mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
                       random_state=self.random_state)
             res.append((self.means[k], mvn.to_ellipse(factor)))
-        return np.array(res)
+        return res
 
 
 def plot_error_ellipses(ax, gmm, colors=None):
