@@ -90,10 +90,15 @@ class MVN(object):
         X = np.atleast_2d(X)
         n_samples, n_features = X.shape
 
-        L = sp.linalg.cholesky(self.covariance, lower=True)
+        C = self.covariance
+        try:
+            L = sp.linalg.cholesky(C, lower=True)
+        except np.linalg.LinAlgError:
+            C = self.covariance + 1e-3 * np.eye(self.covariance.shape[0])
+            L = sp.linalg.cholesky(C, lower=True)
         D = X - self.mean
         cov_sol = sp.linalg.solve_triangular(L, D.T, lower=True).T
-        cov_det = sp.linalg.det(self.covariance)
+        cov_det = sp.linalg.det(C)
 
         DpD = np.sum(cov_sol ** 2, axis=1)
         normalization = 1.0 / np.sqrt(4.0 * np.pi ** n_features * cov_det)
