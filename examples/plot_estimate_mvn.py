@@ -18,7 +18,7 @@ from gmr import MVN, plot_error_ellipse
 random_state = check_random_state(0)
 mvn = MVN(random_state=random_state)
 X = random_state.multivariate_normal([0.0, 1.0], [[0.5, -2.0], [-2.0, 5.0]],
-                                        size=(100,))
+                                     size=(100,))
 mvn.from_samples(X)
 X_sampled = mvn.sample(n_samples=100)
 

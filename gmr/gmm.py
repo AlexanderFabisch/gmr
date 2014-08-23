@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.utils import check_random_state
-from .mvn import MVN, plot_error_ellipse
+from .mvn import MVN
 
 
 class GMM(object):
@@ -91,11 +91,12 @@ class GMM(object):
 
             # Maximization
             w = R.sum(axis=0)
+            R_n = R / w
             self.priors = w / w.sum()
             for k in range(self.n_components):
-                self.means[k] = R[:, k].dot(X) / w[k]
+                self.means[k] = R_n[:, k].dot(X)
                 Xm = X - self.means[k]
-                self.covariances[k] = (R[:, k, np.newaxis] * Xm).T.dot(Xm) / w[k]
+                self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
 
         return self
 
@@ -259,11 +260,12 @@ def plot_error_ellipses(ax, gmm, colors=None):
         Gaussian mixture model.
     """
     from matplotlib.patches import Ellipse
+    from itertools import cycle
+    colors = cycle(colors)
     for factor in np.linspace(0.5, 4.0, 8):
-        for i, (mean, (angle, width, height)) in enumerate(gmm.to_ellipses(factor)):
+        for mean, (angle, width, height) in gmm.to_ellipses(factor):
             ell = Ellipse(xy=mean, width=width, height=height,
                           angle=np.degrees(angle))
             ell.set_alpha(0.25)
-            if colors and i < len(colors):
-                ell.set_color(colors[i])
+            ell.set_color(next(colors))
             ax.add_artist(ell)

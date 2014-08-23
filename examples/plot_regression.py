@@ -49,7 +49,7 @@ Y = gmm.predict(np.array([0]), X_test[:, np.newaxis])
 
 plt.subplot(1, 2, 2)
 plt.title("Mixture of Experts: $p(Y | X) = \Sigma_k \pi_{k, Y|X} "
-            "\mathcal{N}_{k, Y|X}$")
+          "\mathcal{N}_{k, Y|X}$")
 plt.scatter(X[:, 0], X[:, 1])
 plot_error_ellipses(plt.gca(), gmm, colors=["r", "g", "b"])
 plt.plot(X_test, Y.ravel(), c="k", lw=2)

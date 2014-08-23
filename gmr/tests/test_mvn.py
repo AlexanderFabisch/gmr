@@ -71,6 +71,7 @@ def test_conditional_distribution():
     assert_equal(conditional.mean, np.array([1.0]))
     assert_equal(conditional.covariance, np.array([5.0]))
 
+
 def test_ellipse():
     """Test equiprobable ellipse."""
     random_state = check_random_state(0)
