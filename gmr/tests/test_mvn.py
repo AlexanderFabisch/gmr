@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.utils import check_random_state
 from nose.tools import assert_equal, assert_less
+from numpy.testing import assert_array_almost_equal
 from gmr import MVN, plot_error_ellipse
 
 
@@ -91,6 +92,47 @@ def test_ellipse():
     assert_equal(angle, 0.5 * np.pi)
     assert_equal(width, np.sqrt(5.0))
     assert_equal(height, np.sqrt(0.5))
+
+
+def test_regression():
+    """Test regression with MVN."""
+    random_state = check_random_state(0)
+
+    n_samples = 100
+    x = np.linspace(0, 1, n_samples)[:, np.newaxis]
+    y = 3 * x + 1
+    noise = random_state.randn(n_samples, 1) * 0.01
+    y += noise
+    samples = np.hstack((x, y))
+
+    mvn = MVN(random_state=random_state)
+    mvn.from_samples(samples)
+    assert_array_almost_equal(mvn.mean, np.array([0.5, 2.5]), decimal=2)
+
+    pred, cov = mvn.predict(np.array([0]), x)
+    mse = np.sum((y - pred) ** 2) / n_samples
+    assert_less(mse, 1e-3)
+    assert_less(cov[0, 0], 0.01)
+
+
+def test_regression_without_noise():
+    """Test regression without noise with MVN."""
+    random_state = check_random_state(0)
+
+    n_samples = 100
+    x = np.linspace(0, 1, n_samples)[:, np.newaxis]
+    y = 3 * x + 1
+    noise = random_state.randn(n_samples, 1) * 0.01
+    samples = np.hstack((x, y))
+
+    mvn = MVN(random_state=random_state)
+    mvn.from_samples(samples)
+    assert_array_almost_equal(mvn.mean, np.array([0.5, 2.5]), decimal=2)
+
+    pred, cov = mvn.predict(np.array([0]), x)
+    mse = np.sum((y - pred) ** 2) / n_samples
+    assert_less(mse, 1e-10)
+    assert_less(cov[0, 0], 1e-10)
 
 
 def test_plot():
