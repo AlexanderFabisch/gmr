@@ -1,7 +1,9 @@
+import sys
 import numpy as np
 from sklearn.utils import check_random_state
 from nose.tools import assert_equal, assert_less
 from numpy.testing import assert_array_almost_equal
+from cStringIO import StringIO
 from gmr import GMM, plot_error_ellipses
 from test_mvn import AxisStub
 
@@ -48,8 +50,8 @@ def test_probability_density():
     gmm.from_samples(X)
 
     x = np.linspace(-100, 100, 201)
-    X = np.vstack(map(np.ravel, np.meshgrid(x, x))).T
-    p = gmm.to_probability_density(X)
+    X_grid = np.vstack(map(np.ravel, np.meshgrid(x, x))).T
+    p = gmm.to_probability_density(X_grid)
     approx_int = np.sum(p) * ((x[-1] - x[0]) / 201) ** 2
     assert_less(np.abs(1.0 - approx_int), 0.01)
 
@@ -152,3 +154,21 @@ def test_plot():
     ax = AxisStub()
     plot_error_ellipses(ax, gmm, colors=["r", "g"])
     assert_equal(ax.count, 16)
+
+
+def test_verbose_from_samples():
+    """Test verbose output."""
+    global X
+    random_state = check_random_state(0)
+
+    old_stdout = sys.stdout
+    sys.stdout = StringIO()
+    try:
+        gmm = GMM(n_components=2, verbose=True, random_state=random_state)
+        gmm.from_samples(X)
+    finally:
+        out = sys.stdout.getvalue()
+        sys.stdout.close()
+        sys.stdout = old_stdout
+
+    assert("converged" in out)
