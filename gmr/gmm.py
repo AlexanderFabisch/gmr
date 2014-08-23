@@ -261,11 +261,13 @@ def plot_error_ellipses(ax, gmm, colors=None):
     """
     from matplotlib.patches import Ellipse
     from itertools import cycle
-    colors = cycle(colors)
+    if colors is not None:
+        colors = cycle(colors)
     for factor in np.linspace(0.5, 4.0, 8):
         for mean, (angle, width, height) in gmm.to_ellipses(factor):
             ell = Ellipse(xy=mean, width=width, height=height,
                           angle=np.degrees(angle))
             ell.set_alpha(0.25)
-            ell.set_color(next(colors))
+            if colors is not None:
+                ell.set_color(next(colors))
             ax.add_artist(ell)

@@ -2,7 +2,8 @@ import numpy as np
 from sklearn.utils import check_random_state
 from nose.tools import assert_equal, assert_less
 from numpy.testing import assert_array_almost_equal
-from gmr import GMM
+from gmr import GMM, plot_error_ellipses
+from test_mvn import AxisStub
 
 
 random_state = check_random_state(0)
@@ -137,3 +138,17 @@ def test_regression_without_noise():
     pred = gmm.predict(np.array([0]), x)
     mse = np.sum((y - pred) ** 2) / n_samples
     assert_less(mse, 0.01)
+
+
+def test_plot():
+    """Test plot of GMM."""
+    gmm = GMM(n_components=2, priors=np.array([0.5, 0.5]), means=means,
+              covariances=covariances, random_state=0)
+
+    ax = AxisStub()
+    plot_error_ellipses(ax, gmm)
+    assert_equal(ax.count, 16)
+
+    ax = AxisStub()
+    plot_error_ellipses(ax, gmm, colors=["r", "g"])
+    assert_equal(ax.count, 16)
