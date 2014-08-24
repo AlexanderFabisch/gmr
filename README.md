@@ -16,6 +16,8 @@ Example
     X_sampled = gmm.sample(100)
 ```
 
+See `help(gmr)` for more details.
+
 Installation
 ------------
 
