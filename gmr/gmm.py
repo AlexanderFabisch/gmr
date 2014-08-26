@@ -81,6 +81,7 @@ class GMM(object):
         R = np.zeros((n_samples, self.n_components))
         for i in range(n_iter):
             R_prev = R
+
             # Expectation
             R = self.to_responsibilities(X)
 
@@ -93,8 +94,8 @@ class GMM(object):
             w = R.sum(axis=0)
             R_n = R / w
             self.priors = w / w.sum()
+            self.means = R_n.T.dot(X)
             for k in range(self.n_components):
-                self.means[k] = R_n[:, k].dot(X)
                 Xm = X - self.means[k]
                 self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
 
