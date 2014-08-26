@@ -119,10 +119,9 @@ def test_regression_without_noise():
     """Test regression without noise with MVN."""
     random_state = check_random_state(0)
 
-    n_samples = 100
+    n_samples = 10
     x = np.linspace(0, 1, n_samples)[:, np.newaxis]
     y = 3 * x + 1
-    noise = random_state.randn(n_samples, 1) * 0.01
     samples = np.hstack((x, y))
 
     mvn = MVN(random_state=random_state)
@@ -150,5 +149,15 @@ def test_uninitialized():
     random_state = check_random_state(0)
     mvn = MVN(random_state=random_state)
     assert_raises(ValueError, mvn.sample, 10)
+    assert_raises(ValueError, mvn.to_probability_density, np.ones((1, 1)))
+    assert_raises(ValueError, mvn.marginalize, np.zeros(0))
+    assert_raises(ValueError, mvn.condition, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, mvn.predict, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, mvn.to_ellipse)
     mvn = MVN(mean=np.ones(2), random_state=random_state)
     assert_raises(ValueError, mvn.sample, 10)
+    assert_raises(ValueError, mvn.to_probability_density, np.ones((1, 1)))
+    assert_raises(ValueError, mvn.marginalize, np.zeros(0))
+    assert_raises(ValueError, mvn.condition, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, mvn.predict, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, mvn.to_ellipse)
