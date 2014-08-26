@@ -40,6 +40,12 @@ class MVN(object):
         self.verbose = verbose
         self.random_state = check_random_state(random_state)
 
+    def _check_initialized(self):
+        if self.mean is None:
+            raise ValueError("Mean has not been initialized")
+        if self.covariance is None:
+            raise ValueError("Covariance has not been initialized")
+
     def from_samples(self, X, bessels_correction=True):
         """MLE of the mean and covariance.
 
@@ -71,6 +77,7 @@ class MVN(object):
         X : array, shape (n_samples, n_features)
             Samples from the MVN.
         """
+        self._check_initialized()
         return self.random_state.multivariate_normal(
             self.mean, self.covariance, size=(n_samples,))
 
@@ -87,6 +94,8 @@ class MVN(object):
         p : array, shape (n_samples,)
             Probability densities of data.
         """
+        self._check_initialized()
+
         X = np.atleast_2d(X)
         n_samples, n_features = X.shape
 
@@ -117,6 +126,7 @@ class MVN(object):
         marginal : MVN
             Marginal MVN distribution.
         """
+        self._check_initialized()
         return MVN(mean=self.mean[indices],
                    covariance=self.covariance[np.ix_(indices, indices)])
 
@@ -136,6 +146,7 @@ class MVN(object):
         conditional : MVN
             Conditional MVN distribution p(Y | X=x).
         """
+        self._check_initialized()
         mean, covariance = self._condition(
             invert_indices(self.mean.shape[0], indices), indices, x)
         return MVN(mean=mean, covariance=covariance,
@@ -162,6 +173,7 @@ class MVN(object):
         covariance : array, shape (n_features_2, n_features_2)
             Covariance of the predicted features.
         """
+        self._check_initialized()
         return self._condition(invert_indices(self.mean.shape[0], indices),
                                indices, X)
 
@@ -200,6 +212,7 @@ class MVN(object):
         height : float
             Height of the ellipse.
         """
+        self._check_initialized()
         vals, vecs = np.linalg.eigh(self.covariance)
         order = vals.argsort()[::-1]
         vals, vecs = vals[order], vecs[:, order]

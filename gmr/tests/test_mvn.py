@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.utils import check_random_state
-from nose.tools import assert_equal, assert_less
+from nose.tools import assert_equal, assert_less, assert_raises
 from numpy.testing import assert_array_almost_equal
 from gmr import MVN, plot_error_ellipse
 
@@ -143,3 +143,12 @@ def test_plot():
     ax = AxisStub()
     plot_error_ellipse(ax, mvn)
     assert_equal(ax.count, 8)
+
+
+def test_uninitialized():
+    """Test behavior of uninitialized MVN."""
+    random_state = check_random_state(0)
+    mvn = MVN(random_state=random_state)
+    assert_raises(ValueError, mvn.sample, 10)
+    mvn = MVN(mean=np.ones(2), random_state=random_state)
+    assert_raises(ValueError, mvn.sample, 10)
