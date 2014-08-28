@@ -2,6 +2,11 @@
 gmr
 ===
 
+|Travis|_
+
+.. |Travis| image:: https://api.travis-ci.org/AlexanderFabisch/gmr.png?branch=master
+.. _Travis: https://travis-ci.org/AlexanderFabisch/gmr
+
 Gaussian Mixture Models (GMMs) for clustering and regression in Python.
 
 Source code repository: https://github.com/AlexanderFabisch/gmr
