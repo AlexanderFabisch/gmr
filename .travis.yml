@@ -1,0 +1,15 @@
+language: python
+branches:
+  only:
+    - master
+    - /\d+\.\d+\..+/
+install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq python-numpy python-scikits-learn
+script: nosetests gmr
+notifications:
+  recipients:
+    - afabisch@informatik.uni-bremen.de
+  email:
+    on_success: change
+    on_failure: always
