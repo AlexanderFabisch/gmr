@@ -6,7 +6,6 @@ branches:
 install:
   - sudo apt-get update -qq
   - sudo apt-get install python-numpy python-scipy -qq
-  - pip install scikit-learn
 script: nosetests gmr
 notifications:
   recipients:

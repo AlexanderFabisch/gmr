@@ -11,7 +11,7 @@ print(__doc__)
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.utils import check_random_state
+from gmr.utils import check_random_state
 from gmr import GMM, plot_error_ellipses
 
 

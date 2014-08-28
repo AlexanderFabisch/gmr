@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.utils import check_random_state
+from .utils import check_random_state
 from .mvn import MVN
 
 

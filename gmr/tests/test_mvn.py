@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.utils import check_random_state
+from gmr.utils import check_random_state
 from nose.tools import assert_equal, assert_less, assert_raises
 from numpy.testing import assert_array_almost_equal
 from gmr import MVN, plot_error_ellipse

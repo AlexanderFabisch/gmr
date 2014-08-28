@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from sklearn.utils import check_random_state
+from gmr.utils import check_random_state
 from nose.tools import assert_equal, assert_less
 from numpy.testing import assert_array_almost_equal
 from cStringIO import StringIO
