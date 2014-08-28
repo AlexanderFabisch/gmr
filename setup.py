@@ -33,7 +33,7 @@ def setup_package():
             "Programming Language :: Python :: 3.3",
         ],
         packages=["gmr"],
-        requires=["numpy", "sklearn"],
+        requires=["numpy", "scipy", "sklearn"],
     )
 
 
