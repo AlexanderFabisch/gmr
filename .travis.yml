@@ -5,7 +5,7 @@ branches:
     - /\d+\.\d+\..+/
 install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq python-numpy python-scikits-learn
+  - sudo apt-get install -qq python-numpy python-scikits-learn python-nose
 script: nosetests gmr
 notifications:
   recipients:
