@@ -15,7 +15,7 @@ def setup_package():
         author_email="afabisch@googlemail.com",
         url="https://github.com/AlexanderFabisch/gmr",
         description="Gaussian Mixture Regression",
-        long_description=open('README.md').read(),
+        long_description=open('README.rst').read(),
         license="new BSD",
         classifiers=[
             "Intended Audience :: Science/Research",

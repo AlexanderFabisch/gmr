@@ -1,3 +1,4 @@
+===
 gmr
 ===
 
@@ -8,25 +9,28 @@ Source code repository: https://github.com/AlexanderFabisch/gmr
 Example
 -------
 
-```
+Estimate GMM from samples and sample from GMM::
+
     from gmr import GMM
 
     gmm = GMM(n_components=3, random_state=random_state)
     gmm.from_samples(X)
     X_sampled = gmm.sample(100)
-```
 
-See `help(gmr)` for more details.
+
+For more details, see::
+
+    help(gmr)
 
 Installation
 ------------
 
-```
+Install from `PyPI`_::
+
     sudo pip install gmr
-```
 
-or
+or from source::
 
-```
     sudo python setup.py install
-```
+
+.. _PyPi: https://pypi.python.org/pypi
