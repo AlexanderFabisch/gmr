@@ -52,7 +52,7 @@ def test_probability_density():
 
 
 def test_probability_density_without_noise():
-    """Test probability density without noise with MVN."""
+    """Test probability density of MVN with not invertible covariance."""
     random_state = check_random_state(0)
 
     n_samples = 10
@@ -63,6 +63,7 @@ def test_probability_density_without_noise():
     mvn = MVN(random_state=random_state)
     mvn.from_samples(samples)
     assert_array_almost_equal(mvn.mean, np.array([0.5, 1.0]), decimal=2)
+    assert_equal(mvn.covariance[1, 1], 0.0)
     p_training = mvn.to_probability_density(samples)
     p_test = mvn.to_probability_density(samples + 1)
     assert_true(np.all(p_training > p_test))
