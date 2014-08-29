@@ -1,6 +1,6 @@
 import numpy as np
 from gmr.utils import check_random_state
-from nose.tools import assert_equal, assert_less, assert_raises
+from nose.tools import assert_equal, assert_less, assert_raises, assert_true
 from numpy.testing import assert_array_almost_equal
 from gmr import MVN, plot_error_ellipse
 
@@ -49,6 +49,23 @@ def test_probability_density():
     p = mvn.to_probability_density(X)
     approx_int = np.sum(p) * ((x[-1] - x[0]) / 201) ** 2
     assert_less(np.abs(1.0 - approx_int), 0.01)
+
+
+def test_probability_density_without_noise():
+    """Test probability density without noise with MVN."""
+    random_state = check_random_state(0)
+
+    n_samples = 10
+    x = np.linspace(0, 1, n_samples)[:, np.newaxis]
+    y = np.ones((n_samples, 1))
+    samples = np.hstack((x, y))
+
+    mvn = MVN(random_state=random_state)
+    mvn.from_samples(samples)
+    assert_array_almost_equal(mvn.mean, np.array([0.5, 1.0]), decimal=2)
+    p_training = mvn.to_probability_density(samples)
+    p_test = mvn.to_probability_density(samples + 1)
+    assert_true(np.all(p_training > p_test))
 
 
 def test_marginal_distribution():
