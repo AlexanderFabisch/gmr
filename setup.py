@@ -5,17 +5,18 @@
 
 
 from distutils.core import setup
+import gmr
 
 
 def setup_package():
     setup(
         name="gmr",
-        version="1.0",
+        version=gmr.__version__,
         author="Alexander Fabisch",
         author_email="afabisch@googlemail.com",
         url="https://github.com/AlexanderFabisch/gmr",
         description="Gaussian Mixture Regression",
-        long_description=open('README.rst').read(),
+        long_description=open("README.rst").read(),
         license="new BSD",
         classifiers=[
             "Intended Audience :: Science/Research",
