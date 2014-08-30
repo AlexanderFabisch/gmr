@@ -38,6 +38,7 @@ class MVN(object):
         self.covariance = covariance
         self.verbose = verbose
         self.random_state = check_random_state(random_state)
+        self.norm = None
 
     def _check_initialized(self):
         if self.mean is None:
@@ -59,8 +60,9 @@ class MVN(object):
             This object.
         """
         self.mean = np.mean(X, axis=0)
-        self.covariance = np.cov(X, rowvar=0,
-                                 bias=0 if bessels_correction else 1)
+        bias = 0 if bessels_correction else 1
+        self.covariance = np.cov(X, rowvar=0, bias=bias)
+        self.norm = None
         return self
 
     def sample(self, n_samples):
@@ -106,11 +108,11 @@ class MVN(object):
             L = sp.linalg.cholesky(C, lower=True)
         D = X - self.mean
         cov_sol = sp.linalg.solve_triangular(L, D.T, lower=True).T
-        cov_det = sp.linalg.det(C)
+        if self.norm is None:
+            self.norm = 0.5 / np.pi ** (0.5 * n_features) / sp.linalg.det(L)
 
         DpD = np.sum(cov_sol ** 2, axis=1)
-        normalization = 1.0 / np.sqrt(4.0 * np.pi ** n_features * cov_det)
-        return normalization * np.exp(-0.5 * DpD)
+        return self.norm * np.exp(-0.5 * DpD)
 
     def marginalize(self, indices):
         """Marginalize over everything except the given indices.
