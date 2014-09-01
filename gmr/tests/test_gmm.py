@@ -92,7 +92,7 @@ def test_ellipses():
 
     mean, (angle, width, height) = ellipses[1]
     assert_array_almost_equal(means[1], mean)
-    assert_equal(angle, 0.0)
+    assert_equal(angle, -np.pi)
     assert_equal(width, np.sqrt(5.0))
     assert_equal(height, np.sqrt(0.5))
 

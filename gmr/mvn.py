@@ -214,7 +214,7 @@ class MVN(object):
             Height of the ellipse.
         """
         self._check_initialized()
-        vals, vecs = np.linalg.eigh(self.covariance)
+        vals, vecs = sp.linalg.eigh(self.covariance)
         order = vals.argsort()[::-1]
         vals, vecs = vals[order], vecs[:, order]
         angle = np.arctan2(*vecs[:, 0][::-1])
