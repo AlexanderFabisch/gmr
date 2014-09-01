@@ -36,6 +36,14 @@ class GMM(object):
         self.verbose = verbose
         self.random_state = check_random_state(random_state)
 
+    def _check_initialized(self):
+        if self.priors is None:
+            raise ValueError("Priors have not been initialized")
+        if self.means is None:
+            raise ValueError("Means have not been initialized")
+        if self.covariances is None:
+            raise ValueError("Covariances have not been initialized")
+
     def from_samples(self, X, R_diff=1e-4, n_iter=100):
         """MLE of the mean and covariance.
 
@@ -114,6 +122,8 @@ class GMM(object):
         X : array, shape (n_samples, n_features)
             Samples from the GMM.
         """
+        self._check_initialized()
+
         mvn_indices = self.random_state.choice(
             self.n_components, size=(n_samples,), p=self.priors)
         mvn_indices.sort()
@@ -140,6 +150,8 @@ class GMM(object):
         -------
         R : array, shape (n_samples, n_components)
         """
+        self._check_initialized()
+
         n_samples = X.shape[0]
         R = np.empty((n_samples, self.n_components))
         for k in range(self.n_components):
@@ -162,6 +174,8 @@ class GMM(object):
         p : array, shape (n_samples,)
             Probability densities of data.
         """
+        self._check_initialized()
+
         p = [MVN(mean=self.means[k], covariance=self.covariances[k],
                  random_state=self.random_state).to_probability_density(X)
              for k in range(self.n_components)]
@@ -183,6 +197,8 @@ class GMM(object):
         conditional : GMM
             Conditional GMM distribution p(Y | X=x).
         """
+        self._check_initialized()
+
         n_features = self.means.shape[1] - len(indices)
         priors = np.empty(self.n_components)
         means = np.empty((self.n_components, n_features))
@@ -217,6 +233,8 @@ class GMM(object):
         Y : array, shape (n_samples, n_features_2)
             Predicted means of missing values.
         """
+        self._check_initialized()
+
         n_samples, n_features_1 = X.shape
         n_features_2 = self.means.shape[1] - n_features_1
         Y = np.empty((n_samples, n_features_2))
@@ -241,6 +259,8 @@ class GMM(object):
             Parameters that describe the error ellipses of all components:
             angles, widths and heights.
         """
+        self._check_initialized()
+
         res = []
         for k in range(self.n_components):
             mvn = MVN(mean=self.means[k], covariance=self.covariances[k],

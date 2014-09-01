@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 from gmr.utils import check_random_state
-from nose.tools import assert_equal, assert_less
+from nose.tools import assert_equal, assert_less, assert_raises
 from numpy.testing import assert_array_almost_equal
 from cStringIO import StringIO
 from gmr import GMM, plot_error_ellipses
@@ -172,3 +172,27 @@ def test_verbose_from_samples():
         sys.stdout = old_stdout
 
     assert("converged" in out)
+
+
+def test_uninitialized():
+    """Test behavior of uninitialized GMM."""
+    random_state = check_random_state(0)
+    gmm = GMM(n_components=2, random_state=random_state)
+    assert_raises(ValueError, gmm.sample, 10)
+    assert_raises(ValueError, gmm.to_probability_density, np.ones((1, 1)))
+    assert_raises(ValueError, gmm.condition, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, gmm.predict, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, gmm.to_ellipses)
+    gmm = GMM(n_components=2, priors=np.ones(2), random_state=random_state)
+    assert_raises(ValueError, gmm.sample, 10)
+    assert_raises(ValueError, gmm.to_probability_density, np.ones((1, 1)))
+    assert_raises(ValueError, gmm.condition, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, gmm.predict, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, gmm.to_ellipses)
+    gmm = GMM(n_components=2, priors=np.ones(2), means=np.zeros((2, 2)),
+              random_state=random_state)
+    assert_raises(ValueError, gmm.sample, 10)
+    assert_raises(ValueError, gmm.to_probability_density, np.ones((1, 1)))
+    assert_raises(ValueError, gmm.condition, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, gmm.predict, np.zeros(0), np.zeros(0))
+    assert_raises(ValueError, gmm.to_ellipses)
