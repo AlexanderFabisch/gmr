@@ -25,10 +25,10 @@ class MVN(object):
     covariance : array, shape (n_features, n_features), optional
         Covariance of the MVN.
 
-    verbose : int, optional
+    verbose : int, optional (default: 0)
         Verbosity level.
 
-    random_state : int or RandomState, optional
+    random_state : int or RandomState, optional (default: global random state)
         If an integer is given, it fixes the seed. Defaults to the global numpy
         random number generator.
     """

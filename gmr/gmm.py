@@ -20,10 +20,10 @@ class GMM(object):
     covariances : array, shape (n_components, n_features, n_features), optional
         Covariances of the components.
 
-    verbose : int, optional
+    verbose : int, optional (default: 0)
         Verbosity level.
 
-    random_state : int or RandomState, optional
+    random_state : int or RandomState, optional (default: global random state)
         If an integer is given, it fixes the seed. Defaults to the global numpy
         random number generator.
     """
