@@ -87,7 +87,7 @@ class GMM(object):
                 self.covariances[k] = np.eye(n_features)
 
         R = np.zeros((n_samples, self.n_components))
-        for i in range(n_iter):
+        for _ in range(n_iter):
             R_prev = R
 
             # Expectation

@@ -98,7 +98,7 @@ class MVN(object):
         self._check_initialized()
 
         X = np.atleast_2d(X)
-        n_samples, n_features = X.shape
+        n_features = X.shape[1]
 
         C = self.covariance
         try:
