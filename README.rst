@@ -2,10 +2,12 @@
 gmr
 ===
 
-|Travis|_
-
-.. |Travis| image:: https://api.travis-ci.org/AlexanderFabisch/gmr.png?branch=master
-.. _Travis: https://travis-ci.org/AlexanderFabisch/gmr
+.. image:: https://api.travis-ci.org/AlexanderFabisch/gmr.png?branch=master
+   :target: https://travis-ci.org/AlexanderFabisch/gmr
+   :alt: Travis
+.. image:: https://landscape.io/github/AlexanderFabisch/gmr/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/AlexanderFabisch/gmr/master
+   :alt: Code Health
 
 Gaussian Mixture Models (GMMs) for clustering and regression in Python.
 
