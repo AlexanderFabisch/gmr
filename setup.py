@@ -3,15 +3,12 @@
 # Author: Alexander Fabisch <afabisch@googlemail.com>
 # License: BSD 3 clause
 
-
-from distutils.core import setup
-import gmr
-
+from setuptools import setup
 
 def setup_package():
     setup(
         name="gmr",
-        version=gmr.__version__,
+        version="1.1-git",
         author="Alexander Fabisch",
         author_email="afabisch@googlemail.com",
         url="https://github.com/AlexanderFabisch/gmr",
