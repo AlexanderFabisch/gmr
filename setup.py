@@ -4,11 +4,13 @@
 # License: BSD 3 clause
 
 from setuptools import setup
+import gmr
+VERSION = gmr.__version__
 
 def setup_package():
     setup(
         name="gmr",
-        version="1.1-git",
+        version=VERSION,
         author="Alexander Fabisch",
         author_email="afabisch@googlemail.com",
         url="https://github.com/AlexanderFabisch/gmr",
@@ -28,7 +30,7 @@ def setup_package():
             "Programming Language :: Python :: 2",
             "Programming Language :: Python :: 2.7",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: 3.4",
         ],
         packages=["gmr"],
         requires=["numpy", "scipy"],
