@@ -120,6 +120,25 @@ def test_regression():
     assert_less(mse, 0.01)
 
 
+def test_regression_with_2d_input():
+    """Test regression with GMM and two-dimensional input."""
+    random_state = check_random_state(0)
+
+    n_samples = 200
+    x = np.linspace(0, 2, n_samples)[:, np.newaxis]
+    y1 = 3 * x[:n_samples / 2] + 1
+    y2 = -3 * x[n_samples / 2:] + 7
+    noise = random_state.randn(n_samples, 1) * 0.01
+    y = np.vstack((y1, y2)) + noise
+    samples = np.hstack((x, x[::-1], y))
+
+    gmm = GMM(n_components=2, random_state=random_state)
+    gmm.from_samples(samples)
+
+    pred = gmm.predict(np.array([0, 1]), np.hstack((x, x[::-1])))
+    mse = np.sum((y - pred) ** 2) / n_samples
+
+
 def test_regression_without_noise():
     """Test regression without noise."""
     random_state = check_random_state(0)

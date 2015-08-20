@@ -185,9 +185,6 @@ class MVN(object):
         prec_22 = pinvh(cov_22)
         regression_coeffs = cov_12.dot(prec_22)
 
-        if X.ndim == 1:
-            X = X[:, np.newaxis]
-
         mean = self.mean[i1] + regression_coeffs.dot((X - self.mean[i2]).T).T
         covariance = cov_11 - regression_coeffs.dot(cov_12.T)
         return mean, covariance

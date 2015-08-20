@@ -133,6 +133,28 @@ def test_regression():
     assert_less(cov[0, 0], 0.01)
 
 
+def test_regression_with_2d_input():
+    """Test regression with MVN and two-dimensional input."""
+    random_state = check_random_state(0)
+
+    n_samples = 100
+    x = np.linspace(0, 1, n_samples)[:, np.newaxis]
+    y = 3 * x + 1
+    noise = random_state.randn(n_samples, 1) * 0.01
+    y += noise
+    samples = np.hstack((x, x[::-1], y))
+
+    mvn = MVN(random_state=random_state)
+    mvn.from_samples(samples)
+    assert_array_almost_equal(mvn.mean, np.array([0.5, 0.5, 2.5]), decimal=2)
+
+    x_test = np.hstack((x, x[::-1]))
+    pred, cov = mvn.predict(np.array([0, 1]), x_test)
+    mse = np.sum((y - pred) ** 2) / n_samples
+    assert_less(mse, 1e-3)
+    assert_less(cov[0, 0], 0.01)
+
+
 def test_regression_without_noise():
     """Test regression without noise with MVN."""
     random_state = check_random_state(0)
