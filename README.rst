@@ -29,6 +29,14 @@ For more details, see::
 
     help(gmr)
 
+How Does It Compare to scikit-learn?
+------------------------------------
+
+There is an implementation of Gaussian Mixture Models for clustering in
+`scikit-learn <http://scikit-learn.org/stable/modules/generated/sklearn.mixture.GMM.html>`_
+as well. Regression could not be easily integrated in the interface of
+sklearn. That is the reason why I put the code in a separate repository.
+
 Installation
 ------------
 
