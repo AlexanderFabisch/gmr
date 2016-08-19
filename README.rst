@@ -13,7 +13,7 @@ Gaussian Mixture Models (GMMs) for clustering and regression in Python.
 
 Source code repository: https://github.com/AlexanderFabisch/gmr
 
-![Regression](https://raw.github.com/afabisch/gmr/master/gmr.png)
+![Regression](https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/gmr.png)
 
 Example
 -------
