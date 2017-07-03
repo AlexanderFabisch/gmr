@@ -158,7 +158,9 @@ class GMM(object):
             R[:, k] = self.priors[k] * MVN(
                 mean=self.means[k], covariance=self.covariances[k],
                 random_state=self.random_state).to_probability_density(X)
-        R /= R.sum(axis=1)[:, np.newaxis]
+        R_norm = R.sum(axis=1)[:, np.newaxis]
+        R_norm[np.where(R_norm == 0.0)] = 1.0
+        R /= R_norm
         return R
 
     def to_probability_density(self, X):

@@ -2,6 +2,7 @@ import sys
 import numpy as np
 from gmr.utils import check_random_state
 from nose.tools import assert_equal, assert_less, assert_raises
+from nose.plugins.skip import SkipTest
 from numpy.testing import assert_array_almost_equal
 from cStringIO import StringIO
 from gmr import GMM, plot_error_ellipses
@@ -215,3 +216,15 @@ def test_uninitialized():
     assert_raises(ValueError, gmm.condition, np.zeros(0), np.zeros(0))
     assert_raises(ValueError, gmm.predict, np.zeros(0), np.zeros(0))
     assert_raises(ValueError, gmm.to_ellipses)
+
+
+def test_float_precision_error():
+    try:
+        from sklearn.datasets import load_boston
+    except ImportError:
+        raise SkipTest("sklearn is not available")
+
+    boston = load_boston()
+    X, y = boston.data, boston.target
+    gmm = GMM(n_components=10, random_state=2016)
+    gmm.from_samples(X)
