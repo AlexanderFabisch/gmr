@@ -4,7 +4,12 @@ from gmr.utils import check_random_state
 from nose.tools import assert_equal, assert_less, assert_raises
 from nose.plugins.skip import SkipTest
 from numpy.testing import assert_array_almost_equal
-from cStringIO import StringIO
+try:
+    # Python 2
+    from cStringIO import StringIO
+except ImportError:
+    # Python 3
+    from io import StringIO
 from gmr import GMM, plot_error_ellipses
 from test_mvn import AxisStub
 
@@ -104,8 +109,8 @@ def test_regression():
 
     n_samples = 200
     x = np.linspace(0, 2, n_samples)[:, np.newaxis]
-    y1 = 3 * x[:n_samples / 2] + 1
-    y2 = -3 * x[n_samples / 2:] + 7
+    y1 = 3 * x[:n_samples // 2] + 1
+    y2 = -3 * x[n_samples // 2:] + 7
     noise = random_state.randn(n_samples, 1) * 0.01
     y = np.vstack((y1, y2)) + noise
     samples = np.hstack((x, y))
@@ -127,8 +132,8 @@ def test_regression_with_2d_input():
 
     n_samples = 200
     x = np.linspace(0, 2, n_samples)[:, np.newaxis]
-    y1 = 3 * x[:n_samples / 2] + 1
-    y2 = -3 * x[n_samples / 2:] + 7
+    y1 = 3 * x[:n_samples // 2] + 1
+    y2 = -3 * x[n_samples // 2:] + 7
     noise = random_state.randn(n_samples, 1) * 0.01
     y = np.vstack((y1, y2)) + noise
     samples = np.hstack((x, x[::-1], y))
@@ -146,8 +151,8 @@ def test_regression_without_noise():
 
     n_samples = 200
     x = np.linspace(0, 2, n_samples)[:, np.newaxis]
-    y1 = 3 * x[:n_samples / 2] + 1
-    y2 = -3 * x[n_samples / 2:] + 7
+    y1 = 3 * x[:n_samples // 2] + 1
+    y2 = -3 * x[n_samples // 2:] + 7
     y = np.vstack((y1, y2))
     samples = np.hstack((x, y))
 
