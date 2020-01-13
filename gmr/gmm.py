@@ -99,7 +99,7 @@ class GMM(object):
                 break
 
             # Maximization
-            w = R.sum(axis=0)
+            w = R.sum(axis=0) + 10.0 * np.finfo(R.dtype).eps
             R_n = R / w
             self.priors = w / w.sum()
             self.means = R_n.T.dot(X)
