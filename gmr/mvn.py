@@ -104,7 +104,7 @@ class MVN(object):
         try:
             L = sp.linalg.cholesky(C, lower=True)
         except np.linalg.LinAlgError:
-            C = self.covariance + 1e-3 * np.eye(n_features)
+            C = self.covariance + 1e-6 * np.eye(n_features)
             L = sp.linalg.cholesky(C, lower=True)
         D = X - self.mean
         cov_sol = sp.linalg.solve_triangular(L, D.T, lower=True).T
