@@ -118,7 +118,6 @@ class GMM(object):
                                   dtype=np.float) / self.n_components
 
         if self.means is None:
-            # TODO k-means++
             indices = self.random_state.choice(
                 np.arange(n_samples), self.n_components)
             self.means = X[indices]
@@ -314,7 +313,7 @@ class GMM(object):
         return res
 
 
-def plot_error_ellipses(ax, gmm, colors=None):
+def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25):
     """Plot error ellipses of GMM components.
 
     Parameters
@@ -324,6 +323,12 @@ def plot_error_ellipses(ax, gmm, colors=None):
 
     gmm : GMM
         Gaussian mixture model.
+
+    colors : list of str, optional (default: None)
+        Colors in which the ellipses should be plotted
+
+    alpha : int, optional (default: 0.25)
+        Alpha value for ellipses
     """
     from matplotlib.patches import Ellipse
     from itertools import cycle
@@ -333,7 +338,7 @@ def plot_error_ellipses(ax, gmm, colors=None):
         for mean, (angle, width, height) in gmm.to_ellipses(factor):
             ell = Ellipse(xy=mean, width=width, height=height,
                           angle=np.degrees(angle))
-            ell.set_alpha(0.25)
+            ell.set_alpha(alpha)
             if colors is not None:
                 ell.set_color(next(colors))
             ax.add_artist(ell)
