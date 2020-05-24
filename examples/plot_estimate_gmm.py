@@ -20,12 +20,12 @@ random_state = check_random_state(0)
 n_samples = 300
 n_features = 2
 X = np.ndarray((n_samples, n_features))
-X[:n_samples / 3, :] = random_state.multivariate_normal(
-    [0.0, 1.0], [[0.5, -1.0], [-1.0, 5.0]], size=(n_samples / 3,))
-X[n_samples / 3:-n_samples / 3, :] = random_state.multivariate_normal(
-    [-2.0, -2.0], [[3.0, 1.0], [1.0, 1.0]], size=(n_samples / 3,))
-X[-n_samples / 3:, :] = random_state.multivariate_normal(
-    [3.0, 1.0], [[3.0, -1.0], [-1.0, 1.0]], size=(n_samples / 3,))
+X[:n_samples // 3, :] = random_state.multivariate_normal(
+    [0.0, 1.0], [[0.5, -1.0], [-1.0, 5.0]], size=(n_samples // 3,))
+X[n_samples // 3:-n_samples // 3, :] = random_state.multivariate_normal(
+    [-2.0, -2.0], [[3.0, 1.0], [1.0, 1.0]], size=(n_samples // 3,))
+X[-n_samples // 3:, :] = random_state.multivariate_normal(
+    [3.0, 1.0], [[3.0, -1.0], [-1.0, 1.0]], size=(n_samples // 3,))
 
 gmm = GMM(n_components=3, random_state=random_state)
 gmm.from_samples(X)
