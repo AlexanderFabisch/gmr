@@ -1,6 +1,49 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 from .utils import check_random_state
 from .mvn import MVN
+
+
+def kmeansplusplus_initialization(X, n_components, random_state=None):
+    """k-means++ initialization for centers of a GMM.
+
+    Initialization of GMM centers before expectation maximization (EM).
+    The first center is selected uniformly random. Subsequent centers are
+    sampled from the data with probability proportional to the squared
+    distance to the closest center.
+
+    Parameters
+    ----------
+    X : array-like, shape (n_samples, n_features)
+        Samples from the true distribution.
+
+    n_components : int (> 0)
+        Number of MVNs that compose the GMM.
+
+    random_state : int or RandomState, optional (default: global random state)
+        If an integer is given, it fixes the seed. Defaults to the global numpy
+        random number generator.
+    """
+    if n_components <= 0:
+        raise ValueError("Only n_components > 0 allowed.")
+    if n_components > len(X):
+        raise ValueError(
+            "More components (%d) than samples (%d) are not allowed."
+            % (n_components, len(X)))
+
+    random_state = check_random_state(random_state)
+
+    all_indices = np.arange(len(X))
+    selected_centers = [random_state.choice(all_indices, size=1).tolist()[0]]
+    while len(selected_centers) < n_components:
+        centers = np.atleast_2d(X[np.array(selected_centers, dtype=int)])
+        squared_distances = cdist(X, centers, metric="sqeuclidean")
+        selection_probability = squared_distances.max(axis=1)
+        selection_probability[np.array(selected_centers, dtype=int)] = 0.0
+        selection_probability /= np.sum(selection_probability)
+        selected_centers.append(
+            random_state.choice(all_indices, size=1, p=selection_probability)[0])
+    return X[np.array(selected_centers, dtype=int)]
 
 
 class GMM(object):
@@ -54,7 +97,7 @@ class GMM(object):
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
-            Samples from the true function.
+            Samples from the true distribution.
 
         R_diff : float
             Minimum allowed difference of responsibilities between successive
