@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.spatial.distance import cdist
+from scipy.spatial.distance import cdist, pdist
 from .utils import check_random_state
 from .mvn import MVN
 
@@ -23,6 +23,11 @@ def kmeansplusplus_initialization(X, n_components, random_state=None):
     random_state : int or RandomState, optional (default: global random state)
         If an integer is given, it fixes the seed. Defaults to the global numpy
         random number generator.
+
+    Returns
+    -------
+    initial_means : array, shape (n_components, n_features)
+        Initial means
     """
     if n_components <= 0:
         raise ValueError("Only n_components > 0 allowed.")
@@ -44,6 +49,35 @@ def kmeansplusplus_initialization(X, n_components, random_state=None):
         selected_centers.append(
             random_state.choice(all_indices, size=1, p=selection_probability)[0])
     return X[np.array(selected_centers, dtype=int)]
+
+
+def covariance_initialization(X, n_components):
+    """Initialize covariances.
+
+    The standard deviation in each dimension is set to the average Euclidean
+    distance of the training samples divided by the number of components.
+
+    Parameters
+    ----------
+    X : array-like, shape (n_samples, n_features)
+        Samples from the true distribution.
+
+    n_components : int (> 0)
+        Number of MVNs that compose the GMM.
+
+    Returns
+    -------
+    initial_covariances : array, shape (n_components, n_features, n_features)
+        Initial covariances
+    """
+    n_features = X.shape[1]
+    average_distances = np.empty(n_features)
+    for i in range(n_features):
+        average_distances[i] = np.mean(
+            pdist(X[:, i, np.newaxis], metric="euclidean"))
+    initial_covariances = np.empty((n_components, n_features, n_features))
+    initial_covariances[:] = np.eye(n_features) * (average_distances / n_components) ** 2
+    return initial_covariances
 
 
 class GMM(object):
