@@ -40,7 +40,7 @@ n_components = 3
 initial_covs = np.empty((n_components, n_features, n_features))
 initial_covs[:] = np.eye(n_features)
 gmm = GMM(n_components=n_components,
-          priors = np.ones(n_components, dtype=np.float) / n_components,
+          priors=np.ones(n_components, dtype=np.float) / n_components,
           means=np.zeros((n_components, n_features)),
           covariances=initial_covs, random_state=random_state)
 
@@ -63,7 +63,7 @@ plt.scatter(X[:, 0], X[:, 1])
 initial_means = kmeansplusplus_initialization(X, n_components, random_state)
 initial_covs = covariance_initialization(X, n_components)
 gmm = GMM(n_components=n_components,
-          priors = np.ones(n_components, dtype=np.float) / n_components,
+          priors=np.ones(n_components, dtype=np.float) / n_components,
           means=np.copy(initial_means),
           covariances=initial_covs, random_state=random_state)
 
