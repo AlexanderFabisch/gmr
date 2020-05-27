@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.spatial.distance import cdist, pdist
+from scipy.spatial.distance import cdist, pdist, squareform
 from .utils import check_random_state
 from .mvn import MVN
 
@@ -42,13 +42,19 @@ def kmeansplusplus_initialization(X, n_components, random_state=None):
     selected_centers = [random_state.choice(all_indices, size=1).tolist()[0]]
     while len(selected_centers) < n_components:
         centers = np.atleast_2d(X[np.array(selected_centers, dtype=int)])
-        squared_distances = cdist(X, centers, metric="sqeuclidean")
-        selection_probability = squared_distances.max(axis=1)
-        selection_probability[np.array(selected_centers, dtype=int)] = 0.0
-        selection_probability /= np.sum(selection_probability)
-        selected_centers.append(
-            random_state.choice(all_indices, size=1, p=selection_probability)[0])
+        i = _select_next_center(X, centers, random_state, selected_centers, all_indices)
+        selected_centers.append(i)
     return X[np.array(selected_centers, dtype=int)]
+
+
+def _select_next_center(X, centers, random_state, excluded_indices=[], all_indices=None):
+    squared_distances = cdist(X, centers, metric="sqeuclidean")
+    selection_probability = squared_distances.max(axis=1)
+    selection_probability[np.array(excluded_indices, dtype=int)] = 0.0
+    selection_probability /= np.sum(selection_probability)
+    if all_indices is None:
+        all_indices = np.arange(len(X))
+    return random_state.choice(all_indices, size=1, p=selection_probability)[0]
 
 
 def covariance_initialization(X, n_components):
@@ -162,8 +168,12 @@ class GMM(object):
             for k in range(self.n_components):
                 self.covariances[k] = np.eye(n_features)
 
+        initial_covariances = np.copy(self.covariances)
+
         R = np.zeros((n_samples, self.n_components))
-        for _ in range(n_iter):
+        for it in range(n_iter):
+            if self.verbose >= 2:
+                print("Iteration #%d" % (it + 1))
             R_prev = R
 
             # Expectation
@@ -180,10 +190,68 @@ class GMM(object):
             self.priors = w / w.sum()
             self.means = R_n.T.dot(X)
             for k in range(self.n_components):
+                if self.verbose >= 2:
+                    print("Component #%d" % k)
+
+                effective_samples = 1.0 / np.sum(R_n[:, k] ** 2)
+                if effective_samples < n_features:
+                    print("Not enough effective samples")
+                    self.covariances[k] = initial_covariances[k]
+                if self.verbose >= 2:
+                    print("Effective samples %g" % effective_samples)
+
                 Xm = X - self.means[k]
                 self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
 
+                eigvals, _ = np.linalg.eigh(self.covariances[k])
+                eigvals[np.abs(eigvals) < np.finfo(R.dtype).eps] = 0.0
+                nonzero_eigvals = np.count_nonzero(eigvals)
+                if nonzero_eigvals < n_features:
+                    print("Not enough nonzero eigenvalues")
+                    #self.covariances[k] = initial_covariances[k]
+                if self.verbose >= 2:
+                    print("Nonzero eigenvalues %d" % nonzero_eigvals)
+                    print(eigvals)
+                    print(self.covariances[k])
+                rank = np.linalg.matrix_rank(self.covariances[k])
+                if self.verbose >= 2:
+                    print("Too low rank")
+                    #self.covariances[k] = initial_covariances[k]
+                if rank < n_features:
+                    print("Rank %d" % rank)
+
+            self._reinitialize_too_close_means(X, R, initial_covariances)
+
         return self
+
+    def _reinitialize_too_close_means(self, X, R, initial_covariances):
+        mean_distances = pdist(self.means)
+        too_close_means = np.any(mean_distances < np.finfo(R.dtype).eps)
+        if too_close_means:
+            print("Too close means")
+        mean_distances = squareform(mean_distances)
+        if self.verbose >= 2:
+            #mean_distances[:, :] = 0.0
+            print(mean_distances)
+        if too_close_means:
+            same_means = np.where(mean_distances + np.eye(self.n_components)
+                                    < np.finfo(R.dtype).eps)
+            # we only reset one mean at a time
+            i = same_means[0][0]
+
+            if self.verbose >= 2:
+                print("Resetting mean #%d" % i)
+            if i == 0:
+                centers = self.means[1:]
+            else:
+                centers = np.vstack((self.means[:i], self.means[i + 1:]))
+            n = _select_next_center(X, centers, self.random_state)
+            self.means[i] = np.copy(X[n])
+
+            self.covariances[i] = initial_covariances[i]
+
+            self.priors[i] = 1.0 / self.n_components
+            self.priors /= np.sum(self.priors)
 
     def sample(self, n_samples):
         """Sample from Gaussian mixture distribution.
