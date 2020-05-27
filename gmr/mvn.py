@@ -104,12 +104,14 @@ class MVN(object):
         try:
             L = sp.linalg.cholesky(C, lower=True)
         except np.linalg.LinAlgError:
-            C = self.covariance + 1e-6 * np.eye(n_features)
+            C = self.covariance + 1e-3 * np.eye(n_features)
             L = sp.linalg.cholesky(C, lower=True)
         D = X - self.mean
         cov_sol = sp.linalg.solve_triangular(L, D.T, lower=True).T
         if self.norm is None:
-            self.norm = 0.5 / np.pi ** (0.5 * n_features) / sp.linalg.det(L)
+            # TODO is it correct to suppress a determinant of 0? what does it mean?
+            L_det = max(sp.linalg.det(L), np.finfo(L.dtype).eps)
+            self.norm = 0.5 / np.pi ** (0.5 * n_features) / L_det
 
         DpD = np.sum(cov_sol ** 2, axis=1)
         return self.norm * np.exp(-0.5 * DpD)

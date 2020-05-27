@@ -193,15 +193,22 @@ class GMM(object):
                 if self.verbose >= 2:
                     print("Component #%d" % k)
 
-                effective_samples = 1.0 / np.sum(R_n[:, k] ** 2)
-                if effective_samples < n_features:
-                    print("Not enough effective samples")
-                    self.covariances[k] = initial_covariances[k]
-                if self.verbose >= 2:
-                    print("Effective samples %g" % effective_samples)
+                # TODO
+                #max_variance = np.diag(self.covariances[k]).max()
+                #if max_variance < 
 
                 Xm = X - self.means[k]
                 self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
+
+                effective_samples = 1.0 / np.sum(R_n[:, k] ** 2)
+                if effective_samples < n_features:
+                    print("Not enough effective samples")
+                    self._reinitialize_gaussian(k, X, initial_covariances)
+                if effective_samples > int(0.9 * n_samples):
+                    print("Too many effective samples")
+                    self._reinitialize_gaussian(k, X, initial_covariances)
+                if self.verbose >= 2:
+                    print("Effective samples %g" % effective_samples)
 
                 eigvals, _ = np.linalg.eigh(self.covariances[k])
                 eigvals[np.abs(eigvals) < np.finfo(R.dtype).eps] = 0.0
@@ -241,6 +248,10 @@ class GMM(object):
 
             if self.verbose >= 2:
                 print("Resetting mean #%d" % i)
+
+            self._reinitialize_gaussian(i, X, initial_covariances)
+
+    def _reinitialize_gaussian(self, i, X, initial_covariances):
             if i == 0:
                 centers = self.means[1:]
             else:
