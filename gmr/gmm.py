@@ -127,7 +127,7 @@ class GMM(object):
         if self.covariances is None:
             raise ValueError("Covariances have not been initialized")
 
-    def from_samples(self, X, R_diff=1e-4, n_iter=100):
+    def from_samples(self, X, R_diff=1e-4, n_iter=100, max_eff_sample=1.0):
         """MLE of the mean and covariance.
 
         Expectation-maximization is used to infer the model parameters. The
@@ -146,11 +146,23 @@ class GMM(object):
         n_iter : int
             Maximum number of iterations.
 
+        max_eff_sample : int, optional (default: 1.0)
+            Maximum fraction of effective samples from all samples that is
+            allowed to update one Gaussian. If this threshold is surpassed
+            it will be reinitialized. A value >= 1.0 will disable this.
+            A value below 1 / n_components is not possible. A value between
+            0.5 and 1 is recommended.
+
         Returns
         -------
         self : MVN
             This object.
         """
+        if max_eff_sample <= 1.0 / self.n_components:
+            raise ValueError(
+                "max_eff_sample is too small. It must be set to at least "
+                "1 / n_components.")
+
         n_samples, n_features = X.shape
 
         if self.priors is None:
@@ -204,7 +216,7 @@ class GMM(object):
                 if effective_samples < n_features:
                     print("Not enough effective samples")
                     self._reinitialize_gaussian(k, X, initial_covariances)
-                if effective_samples > int(0.9 * n_samples):
+                if effective_samples > int(max_eff_sample * n_samples):
                     print("Too many effective samples")
                     self._reinitialize_gaussian(k, X, initial_covariances)
                 if self.verbose >= 2:
@@ -218,8 +230,8 @@ class GMM(object):
                     #self.covariances[k] = initial_covariances[k]
                 if self.verbose >= 2:
                     print("Nonzero eigenvalues %d" % nonzero_eigvals)
-                    print(eigvals)
-                    print(self.covariances[k])
+                    #print(eigvals)
+                    #print(self.covariances[k])
                 rank = np.linalg.matrix_rank(self.covariances[k])
                 if self.verbose >= 2:
                     print("Too low rank")
@@ -237,12 +249,11 @@ class GMM(object):
         if too_close_means:
             print("Too close means")
         mean_distances = squareform(mean_distances)
-        if self.verbose >= 2:
-            #mean_distances[:, :] = 0.0
-            print(mean_distances)
+        #if self.verbose >= 2:
+        #    print(mean_distances)
         if too_close_means:
             same_means = np.where(mean_distances + np.eye(self.n_components)
-                                    < np.finfo(R.dtype).eps)
+                                  < np.finfo(R.dtype).eps)
             # we only reset one mean at a time
             i = same_means[0][0]
 
