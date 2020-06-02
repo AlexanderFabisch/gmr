@@ -127,7 +127,8 @@ class GMM(object):
         if self.covariances is None:
             raise ValueError("Covariances have not been initialized")
 
-    def from_samples(self, X, R_diff=1e-4, n_iter=100, max_eff_sample=1.0):
+    def from_samples(self, X, R_diff=1e-4, n_iter=100, reinit_means=False,
+                     min_eff_sample=0, max_eff_sample=1.0):
         """MLE of the mean and covariance.
 
         Expectation-maximization is used to infer the model parameters. The
@@ -146,7 +147,18 @@ class GMM(object):
         n_iter : int
             Maximum number of iterations.
 
-        max_eff_sample : int, optional (default: 1.0)
+        reinit_means : bool, optional (default: False)
+            Reinitialize degenerated means. Checks distances between all means
+            and initializes identical distributions.
+
+        min_eff_sample : int, optional (default: 0)
+            Minimum number of effective samples that is allowed to update one
+            Gaussian before it will be reinitialized. 0 deactivates this.
+            The number of features (n_features) is a good initial guess. Do
+            not set too large values, otherwise small clusters might not be
+            covered at all.
+
+        max_eff_sample : float in [0, 1], optional (default: 1.0)
             Maximum fraction of effective samples from all samples that is
             allowed to update one Gaussian. If this threshold is surpassed
             it will be reinitialized. A value >= 1.0 will disable this.
@@ -213,7 +225,7 @@ class GMM(object):
                 self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
 
                 effective_samples = 1.0 / np.sum(R_n[:, k] ** 2)
-                if effective_samples < n_features:
+                if effective_samples < min_eff_sample:
                     print("Not enough effective samples")
                     self._reinitialize_gaussian(k, X, initial_covariances)
                 if effective_samples > int(max_eff_sample * n_samples):
@@ -239,7 +251,8 @@ class GMM(object):
                 if rank < n_features:
                     print("Rank %d" % rank)
 
-            self._reinitialize_too_close_means(X, R, initial_covariances)
+            if reinit_means:
+                self._reinitialize_too_close_means(X, R, initial_covariances)
 
         return self
 
