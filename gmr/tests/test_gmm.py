@@ -10,7 +10,7 @@ try:
 except ImportError:
     # Python 3
     from io import StringIO
-from gmr import GMM, plot_error_ellipses, kmeansplusplus_initialization
+from gmr import GMM, plot_error_ellipses, kmeansplusplus_initialization, covariance_initialization
 from test_mvn import AxisStub
 
 
@@ -73,6 +73,30 @@ def test_kmeanspp_six_samples_three_centers():
         X[2] in centers or
         X[3] in centers
     )
+
+
+def test_initialize_no_covariance():
+    assert_raises(
+        ValueError, covariance_initialization,
+        np.array([[0, 1], [2, 3]]), 0)
+
+
+def test_initialize_one_covariance():
+    cov = covariance_initialization(np.array([[0], [1]]), 1)
+    assert_equal(len(cov), 1)
+    assert_array_almost_equal(cov, np.array([[[1.0]]]))
+
+
+def test_initialize_two_covariances():
+    cov = covariance_initialization(np.array([[0], [1], [2]]), 2)
+    assert_equal(len(cov), 2)
+    assert_array_almost_equal(cov, np.array([[[2.0 / 3.0]], [[2.0 / 3.0]]]) ** 2)
+
+
+def test_initialize_2d_covariance():
+    cov = covariance_initialization(np.array([[0, 0], [3, 4]]), 1)
+    assert_equal(len(cov), 1)
+    assert_array_almost_equal(cov, np.array([[[9.0, 0.0], [0.0, 16.0]]]))
 
 
 def test_estimate_moments():
