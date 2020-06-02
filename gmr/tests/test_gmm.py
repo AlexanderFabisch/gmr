@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 from gmr.utils import check_random_state
-from nose.tools import assert_equal, assert_less, assert_raises
+from nose.tools import assert_equal, assert_less, assert_raises, assert_in, assert_false, assert_true
 from nose.plugins.skip import SkipTest
 from numpy.testing import assert_array_almost_equal
 try:
@@ -10,7 +10,7 @@ try:
 except ImportError:
     # Python 3
     from io import StringIO
-from gmr import GMM, plot_error_ellipses
+from gmr import GMM, plot_error_ellipses, kmeansplusplus_initialization
 from test_mvn import AxisStub
 
 
@@ -23,6 +23,56 @@ covariances = np.array([[[0.5, -1.0], [-1.0, 5.0]],
 X1 = random_state.multivariate_normal(means[0], covariances[0], size=(50000,))
 X2 = random_state.multivariate_normal(means[1], covariances[1], size=(50000,))
 X = np.vstack((X1, X2))
+
+
+def test_kmeanspp_too_few_centers():
+    X = np.array([[0.0, 1.0]])
+    assert_raises(ValueError, kmeansplusplus_initialization, X, 0, 0)
+
+
+def test_kmeanspp_too_many_centers():
+    X = np.array([[0.0, 1.0]])
+    assert_raises(ValueError, kmeansplusplus_initialization, X, 2, 0)
+
+
+def test_kmeanspp_one_sample():
+    X = np.array([[0.0, 1.0]])
+    centers = kmeansplusplus_initialization(X, 1, 0)
+    assert_array_almost_equal(X, centers)
+
+
+def test_kmeanspp_two_samples():
+    X = np.array([[0.0, 1.0], [1.0, 0.0]])
+    centers = kmeansplusplus_initialization(X, 1, 0)
+    assert_in(centers[0], X)
+
+
+def test_kmeanspp_two_samples_two_centers():
+    X = np.array([[0.0, 1.0], [1.0, 0.0]])
+    centers = kmeansplusplus_initialization(X, 2, 0)
+    assert_in(centers[0], X)
+    assert_in(centers[1], X)
+    assert_false(centers[0, 0] == centers[1, 0])
+
+
+def test_kmeanspp_six_samples_three_centers():
+    X = np.array([
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [0.0, 0.0],
+        [1.0, 1.0],
+        [100.0, 0.0],
+        [0.0, 100.0]])
+    centers = kmeansplusplus_initialization(X, 3, 0)
+    assert_equal(len(centers), 3)
+    assert_in(np.array([100.0, 0.0]), centers)
+    assert_in(np.array([0.0, 100.0]), centers)
+    assert_true(
+        X[0] in centers or
+        X[1] in centers or
+        X[2] in centers or
+        X[3] in centers
+    )
 
 
 def test_estimate_moments():
