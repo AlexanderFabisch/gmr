@@ -70,13 +70,17 @@ def covariance_initialization(X, n_components):
     initial_covariances : array, shape (n_components, n_features, n_features)
         Initial covariances
     """
+    if n_components <= 0:
+        raise ValueError(
+            "It does not make sense to initialize 0 or fewer covariances.")
     n_features = X.shape[1]
     average_distances = np.empty(n_features)
     for i in range(n_features):
         average_distances[i] = np.mean(
             pdist(X[:, i, np.newaxis], metric="euclidean"))
     initial_covariances = np.empty((n_components, n_features, n_features))
-    initial_covariances[:] = np.eye(n_features) * (average_distances / n_components) ** 2
+    initial_covariances[:] = (np.eye(n_features) *
+                              (average_distances / n_components) ** 2)
     return initial_covariances
 
 
