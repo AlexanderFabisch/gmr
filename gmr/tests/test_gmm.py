@@ -347,3 +347,8 @@ def test_kmeanspp_initialization():
     assert_true(all(mean_dists > 1))
     assert_true(all(1e7 < gmm.covariances[:, 1, 1]))
     assert_true(all(gmm.covariances[:, 1, 1] < 1e9))
+
+
+def test_unknown_initialization():
+    gmm = GMM(n_components=3, random_state=0)
+    assert_raises(ValueError, gmm.from_samples, X, init_params="unknown")
