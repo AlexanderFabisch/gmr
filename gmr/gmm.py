@@ -169,8 +169,7 @@ class GMM(object):
         if self.covariances is None:
             self.covariances = np.empty((self.n_components, n_features,
                                          n_features))
-            for k in range(self.n_components):
-                self.covariances[k] = np.eye(n_features)
+            self.covariances[:] = np.eye(n_features)
 
         R = np.zeros((n_samples, self.n_components))
         for _ in range(n_iter):
