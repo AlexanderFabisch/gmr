@@ -42,13 +42,19 @@ def kmeansplusplus_initialization(X, n_components, random_state=None):
     selected_centers = [random_state.choice(all_indices, size=1).tolist()[0]]
     while len(selected_centers) < n_components:
         centers = np.atleast_2d(X[np.array(selected_centers, dtype=int)])
-        squared_distances = cdist(X, centers, metric="sqeuclidean")
-        selection_probability = squared_distances.max(axis=1)
-        selection_probability[np.array(selected_centers, dtype=int)] = 0.0
-        selection_probability /= np.sum(selection_probability)
-        selected_centers.append(
-            random_state.choice(all_indices, size=1, p=selection_probability)[0])
+        i = _select_next_center(X, centers, random_state, selected_centers, all_indices)
+        selected_centers.append(i)
     return X[np.array(selected_centers, dtype=int)]
+
+
+def _select_next_center(X, centers, random_state, excluded_indices,
+                        all_indices):
+    """Sample with probability proportional to the squared distance to closest center."""
+    squared_distances = cdist(X, centers, metric="sqeuclidean")
+    selection_probability = squared_distances.max(axis=1)
+    selection_probability[np.array(excluded_indices, dtype=int)] = 0.0
+    selection_probability /= np.sum(selection_probability)
+    return random_state.choice(all_indices, size=1, p=selection_probability)[0]
 
 
 def covariance_initialization(X, n_components):
