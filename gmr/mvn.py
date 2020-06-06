@@ -100,19 +100,29 @@ class MVN(object):
         X = np.atleast_2d(X)
         n_features = X.shape[1]
 
-        C = self.covariance
         try:
-            L = sp.linalg.cholesky(C, lower=True)
+            L = sp.linalg.cholesky(self.covariance, lower=True)
         except np.linalg.LinAlgError:
-            C = self.covariance + 1e-6 * np.eye(n_features)
-            L = sp.linalg.cholesky(C, lower=True)
-        D = X - self.mean
-        cov_sol = sp.linalg.solve_triangular(L, D.T, lower=True).T
-        if self.norm is None:
-            self.norm = 0.5 / np.pi ** (0.5 * n_features) / sp.linalg.det(L)
+            # Degenerated covariance, try to add regularization
+            L = sp.linalg.cholesky(
+                self.covariance + 1e-3 * np.eye(n_features), lower=True)
 
-        DpD = np.sum(cov_sol ** 2, axis=1)
-        return self.norm * np.exp(-0.5 * DpD)
+        X_minus_mean = X - self.mean
+
+        if self.norm is None:
+            # Suppress a determinant of 0 to avoid numerical problems
+            L_det = max(sp.linalg.det(L), np.finfo(L.dtype).eps)
+            self.norm = 0.5 / np.pi ** (0.5 * n_features) / L_det
+
+        # Solve L x = (X - mean)^T for x with triangular L
+        # (LL^T = Sigma), that is, x = L^T^-1 (X - mean)^T.
+        # We can avoid covariance inversion when computing
+        # (X - mean) Sigma^-1 (X - mean)^T  with this trick,
+        # since Sigma^-1 = L^T^-1 L^-1.
+        X_normalized = sp.linalg.solve_triangular(
+            L, X_minus_mean.T, lower=True).T
+
+        return self.norm * np.exp(-0.5 * np.sum(X_normalized ** 2, axis=1))
 
     def marginalize(self, indices):
         """Marginalize over everything except the given indices.
