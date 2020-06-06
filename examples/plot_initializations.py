@@ -17,7 +17,7 @@ from gmr.utils import check_random_state
 from gmr import GMM, plot_error_ellipses, kmeansplusplus_initialization, covariance_initialization
 
 
-random_state = check_random_state(0)
+random_state = check_random_state(1)
 
 n_samples = 300
 n_features = 2
@@ -32,55 +32,55 @@ X[-n_samples // 3:, :] = random_state.multivariate_normal(
 # artificial scaling, makes standard implementation fail
 # either the initial covariances have to be adjusted or we have
 # to normalize the dataset
-X[:, 1] *= 100.0
+X[:, 1] *= 10000.0
 
 plt.figure(figsize=(10, 10))
 
 n_components = 3
 initial_covs = np.empty((n_components, n_features, n_features))
 initial_covs[:] = np.eye(n_features)
-gmm = GMM(n_components=n_components,
-          priors=np.ones(n_components, dtype=np.float) / n_components,
-          means=np.zeros((n_components, n_features)),
-          covariances=initial_covs, random_state=random_state)
+gmm = GMM(n_components=n_components, random_state=random_state)
+gmm.from_samples(X, init_params="random", n_iter=0)
 
 plt.subplot(2, 2, 1)
 plt.title("Default initialization")
 plt.xlim((-10, 10))
-plt.ylim((-1000, 1000))
+plt.ylim((-100000, 100000))
 plot_error_ellipses(plt.gca(), gmm, colors=["r", "g", "b"], alpha=0.15)
 plt.scatter(X[:, 0], X[:, 1])
+plt.scatter(gmm.means[:, 0], gmm.means[:, 1], color=["r", "g", "b"])
 
 gmm.from_samples(X)
 
 plt.subplot(2, 2, 2)
 plt.title("Trained Gaussian Mixture Model")
 plt.xlim((-10, 10))
-plt.ylim((-1000, 1000))
+plt.ylim((-100000, 100000))
 plot_error_ellipses(plt.gca(), gmm, colors=["r", "g", "b"], alpha=0.15)
 plt.scatter(X[:, 0], X[:, 1])
+plt.scatter(gmm.means[:, 0], gmm.means[:, 1], color=["r", "g", "b"])
 
 initial_means = kmeansplusplus_initialization(X, n_components, random_state)
 initial_covs = covariance_initialization(X, n_components)
-gmm = GMM(n_components=n_components,
-          priors=np.ones(n_components, dtype=np.float) / n_components,
-          means=np.copy(initial_means),
-          covariances=initial_covs, random_state=random_state)
+gmm = GMM(n_components=n_components, random_state=random_state)
+gmm.from_samples(X, init_params="kmeans++", n_iter=0)
 
 plt.subplot(2, 2, 3)
 plt.title("k-means++ and inital covariance scaling")
 plt.xlim((-10, 10))
-plt.ylim((-1000, 1000))
+plt.ylim((-100000, 100000))
 plot_error_ellipses(plt.gca(), gmm, colors=["r", "g", "b"], alpha=0.15)
 plt.scatter(X[:, 0], X[:, 1])
+plt.scatter(gmm.means[:, 0], gmm.means[:, 1], color=["r", "g", "b"])
 
 gmm.from_samples(X)
 
 plt.subplot(2, 2, 4)
 plt.title("Trained Gaussian Mixture Model")
 plt.xlim((-10, 10))
-plt.ylim((-1000, 1000))
+plt.ylim((-100000, 100000))
 plot_error_ellipses(plt.gca(), gmm, colors=["r", "g", "b"], alpha=0.15)
 plt.scatter(X[:, 0], X[:, 1])
+plt.scatter(gmm.means[:, 0], gmm.means[:, 1], color=["r", "g", "b"])
 
 plt.show()
