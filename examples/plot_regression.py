@@ -34,8 +34,8 @@ plt.subplot(1, 2, 1)
 plt.title("Linear: $p(Y | X) = \mathcal{N}(\mu_{Y|X}, \Sigma_{Y|X})$")
 plt.scatter(X[:, 0], X[:, 1])
 y = mean.ravel()
-s = covariance.ravel()
-plt.fill_between(X_test, y - np.sqrt(s), y + np.sqrt(s), alpha=0.2)
+s = 1.96 * np.sqrt(covariance.ravel())  # interval covers 95% of the data
+plt.fill_between(X_test, y - s, y + s, alpha=0.2)
 plt.plot(X_test, y, lw=2)
 
 n_samples = 100
