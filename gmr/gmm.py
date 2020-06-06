@@ -164,7 +164,7 @@ class GMM(object):
 
         Returns
         -------
-        self : MVN
+        self : GMM
             This object.
         """
         n_samples, n_features = X.shape
