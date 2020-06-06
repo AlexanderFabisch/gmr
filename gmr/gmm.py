@@ -379,6 +379,25 @@ class GMM(object):
             res.append((self.means[k], mvn.to_ellipse(factor)))
         return res
 
+    def to_mvn(self):
+        """Collapse to a single Gaussian.
+
+        Returns
+        -------
+        mvn : MVN
+            Multivariate normal distribution.
+        """
+        self._check_initialized()
+
+        mean = np.sum(self.priors[:, np.newaxis] * self.means, 0)
+        assert len(self.covariances)
+        covariance = np.zeros_like(self.covariances[0])
+        covariance += np.sum(self.priors[:, np.newaxis, np.newaxis] * self.covariances, axis=0)
+        covariance += self.means.T.dot(np.diag(self.priors)).dot(self.means)
+        covariance -= np.outer(mean, mean)
+        return MVN(mean=mean, covariance=covariance,
+                   verbose=self.verbose, random_state=self.random_state)
+
 
 def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25):
     """Plot error ellipses of GMM components.
