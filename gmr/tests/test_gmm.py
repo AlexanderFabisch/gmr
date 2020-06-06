@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+from scipy.spatial.distance import pdist
 from gmr.utils import check_random_state
 from nose.tools import assert_equal, assert_less, assert_raises, assert_in, assert_false, assert_true
 from nose.plugins.skip import SkipTest
@@ -307,3 +308,42 @@ def test_float_precision_error():
     X, y = boston.data, boston.target
     gmm = GMM(n_components=10, random_state=2016)
     gmm.from_samples(X)
+
+
+def test_kmeanspp_initialization():
+    random_state = check_random_state(0)
+
+    n_samples = 300
+    n_features = 2
+    X = np.ndarray((n_samples, n_features))
+    mean0 = np.array([0.0, 1.0])
+    X[:n_samples // 3, :] = random_state.multivariate_normal(
+        mean0, [[0.5, -1.0], [-1.0, 5.0]], size=(n_samples // 3,))
+    mean1 = np.array([-2.0, -2.0])
+    X[n_samples // 3:-n_samples // 3, :] = random_state.multivariate_normal(
+        mean1, [[3.0, 1.0], [1.0, 1.0]], size=(n_samples // 3,))
+    mean2 = np.array([3.0, 1.0])
+    X[-n_samples // 3:, :] = random_state.multivariate_normal(
+        mean2, [[3.0, -1.0], [-1.0, 1.0]], size=(n_samples // 3,))
+
+    # artificial scaling, makes standard implementation fail
+    # either the initial covariances have to be adjusted or we have
+    # to normalize the dataset
+    X[:, 1] *= 10000.0
+
+    gmm = GMM(n_components=3, random_state=random_state)
+    gmm.from_samples(X, init_params="random")
+    # random initialization fails
+    assert_less(gmm.covariances[0, 0, 0], np.finfo(float).eps)
+    assert_less(gmm.covariances[1, 0, 0], np.finfo(float).eps)
+    assert_less(gmm.covariances[2, 0, 0], np.finfo(float).eps)
+    assert_less(gmm.covariances[0, 1, 1], np.finfo(float).eps)
+    assert_less(gmm.covariances[1, 1, 1], np.finfo(float).eps)
+    assert_less(gmm.covariances[2, 1, 1], np.finfo(float).eps)
+
+    gmm = GMM(n_components=3, random_state=random_state)
+    gmm.from_samples(X, init_params="kmeans++")
+    mean_dists = pdist(gmm.means)
+    assert_true(all(mean_dists > 1))
+    assert_true(all(1e7 < gmm.covariances[:, 1, 1]))
+    assert_true(all(gmm.covariances[:, 1, 1] < 1e9))

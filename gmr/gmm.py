@@ -131,7 +131,7 @@ class GMM(object):
         if self.covariances is None:
             raise ValueError("Covariances have not been initialized")
 
-    def from_samples(self, X, R_diff=1e-4, n_iter=100):
+    def from_samples(self, X, R_diff=1e-4, n_iter=100, init_params="random"):
         """MLE of the mean and covariance.
 
         Expectation-maximization is used to infer the model parameters. The
@@ -150,6 +150,18 @@ class GMM(object):
         n_iter : int
             Maximum number of iterations.
 
+        init_params : str, optional (default: 'random')
+            Parameter initialization strategy. If means and covariances are
+            given in the constructor, this parameter will have no effect.
+            'random' will sample initial means randomly from the dataset
+            and set covariances to identity matrices. This is the
+            computationally cheap solution.
+            'kmeans++' will use k-means++ initialization for means and
+            initialize covariances to diagonal matrices with variances
+            set based on the average distances of samples in each dimensions.
+            This is computationally more expensive but often gives much
+            better results.
+
         Returns
         -------
         self : MVN
@@ -161,15 +173,27 @@ class GMM(object):
             self.priors = np.ones(self.n_components,
                                   dtype=np.float) / self.n_components
 
+        if init_params not in ["random", "kmeans++"]:
+            raise ValueError("'init_params' must be 'random' or 'kmeans++' "
+                             "but is '%s'" % init_params)
+
         if self.means is None:
-            indices = self.random_state.choice(
-                np.arange(n_samples), self.n_components)
-            self.means = X[indices]
+            if init_params == "random":
+                indices = self.random_state.choice(
+                    np.arange(n_samples), self.n_components)
+                self.means = X[indices]
+            else:
+                self.means = kmeansplusplus_initialization(
+                    X, self.n_components, self.random_state)
 
         if self.covariances is None:
-            self.covariances = np.empty((self.n_components, n_features,
-                                         n_features))
-            self.covariances[:] = np.eye(n_features)
+            if init_params == "random":
+                self.covariances = np.empty(
+                    (self.n_components, n_features, n_features))
+                self.covariances[:] = np.eye(n_features)
+            else:
+                self.covariances = covariance_initialization(
+                    X, self.n_components)
 
         R = np.zeros((n_samples, self.n_components))
         for _ in range(n_iter):
