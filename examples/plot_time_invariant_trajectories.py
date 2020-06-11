@@ -1,3 +1,27 @@
+"""
+=============================================
+Generate Time-Invariant Trajectories with GMR
+=============================================
+
+Make sure to run this example from gmr's root directory. An additional package
+is required to load an SVG file: 'svgpathtools'. We will further use the
+Bayesian GMM from sklearn to get a better fit of the data.
+
+We will load an SVG that contains one path that will be used to generate our
+training data. We extract a sequence of 2D points from the path. We will then
+compute the differences between points and assume they are velocities between
+those points. We fit a GMM on samples that contain four features: x- and
+y-coordinate of the position and the corresponding velocity. We now have a
+time-invariant representation of a trajectory. Starting from some position
+(x, y) we can compute a conditional GMM over the velocities. We can sample
+from the conditional GMM to generate a velocity, integrate the velocity
+to obtain a new position, and repeat this procedure as long as we want.
+
+Note that we use a "safe" sampling procedure here: we neglect Gaussians that
+have low prior probability and we resample from a selected Gaussian until
+we have a velocity that lies within the 70 % confidence interval of the
+Gaussian. We do this to avoid divergence from the training data.
+"""
 from svgpathtools import svg2paths  # pip install svgpathtools
 import numpy as np
 import matplotlib.pyplot as plt
