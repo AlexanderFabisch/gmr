@@ -215,10 +215,10 @@ class MVN(object):
             Rotation angle of the ellipse.
 
         width : float
-            Width of the ellipse.
+            Width of the ellipse (semi axis, not diameter).
 
         height : float
-            Height of the ellipse.
+            Height of the ellipse (semi axis, not diameter).
         """
         self._check_initialized()
         vals, vecs = sp.linalg.eigh(self.covariance)
@@ -229,7 +229,7 @@ class MVN(object):
         return angle, width, height
 
 
-def plot_error_ellipse(ax, mvn):
+def plot_error_ellipse(ax, mvn, alpha=0.25, factors=np.linspace(0.25, 2.0, 8)):
     """Plot error ellipse of MVN.
 
     Parameters
@@ -239,11 +239,17 @@ def plot_error_ellipse(ax, mvn):
 
     mvn : MVN
         Multivariate normal distribution.
+
+    alpha : int, optional (default: 0.25)
+        Alpha value for ellipses
+
+    factors : array, optional (default: np.linspace(0.25, 2.0, 8))
+        Multiples of the standard deviations that should be plotted.
     """
     from matplotlib.patches import Ellipse
-    for factor in np.linspace(0.5, 4.0, 8):
+    for factor in factors:
         angle, width, height = mvn.to_ellipse(factor)
-        ell = Ellipse(xy=mvn.mean, width=width, height=height,
+        ell = Ellipse(xy=mvn.mean, width=2.0 * width, height=2.0 * height,
                       angle=np.degrees(angle))
-        ell.set_alpha(0.25)
+        ell.set_alpha(alpha)
         ax.add_artist(ell)
