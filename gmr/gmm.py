@@ -366,9 +366,10 @@ class GMM(object):
 
         Returns
         -------
-        ellipses : array, shape (n_components, 3)
+        ellipses : list
             Parameters that describe the error ellipses of all components:
-            angles, widths and heights.
+            mean and a tuple of angles, widths and heights. Note that widths
+            and heights are semi axes, not diameters.
         """
         self._check_initialized()
 
@@ -399,7 +400,7 @@ class GMM(object):
                    verbose=self.verbose, random_state=self.random_state)
 
 
-def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25):
+def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25, factors=np.linspace(0.25, 2.0, 8)):
     """Plot error ellipses of GMM components.
 
     Parameters
@@ -415,14 +416,17 @@ def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25):
 
     alpha : int, optional (default: 0.25)
         Alpha value for ellipses
+
+    factors : array, optional (default: np.linspace(0.25, 2.0, 8))
+        Multiples of the standard deviations that should be plotted.
     """
     from matplotlib.patches import Ellipse
     from itertools import cycle
     if colors is not None:
         colors = cycle(colors)
-    for factor in np.linspace(0.5, 4.0, 8):
+    for factor in factors:
         for mean, (angle, width, height) in gmm.to_ellipses(factor):
-            ell = Ellipse(xy=mean, width=width, height=height,
+            ell = Ellipse(xy=mean, width=2.0 * width, height=2.0 * height,
                           angle=np.degrees(angle))
             ell.set_alpha(alpha)
             if colors is not None:
