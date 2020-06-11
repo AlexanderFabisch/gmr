@@ -229,7 +229,8 @@ class MVN(object):
         return angle, width, height
 
 
-def plot_error_ellipse(ax, mvn, alpha=0.25, factors=np.linspace(0.25, 2.0, 8)):
+def plot_error_ellipse(ax, mvn, color=None, alpha=0.25,
+                       factors=np.linspace(0.25, 2.0, 8)):
     """Plot error ellipse of MVN.
 
     Parameters
@@ -240,8 +241,11 @@ def plot_error_ellipse(ax, mvn, alpha=0.25, factors=np.linspace(0.25, 2.0, 8)):
     mvn : MVN
         Multivariate normal distribution.
 
+    color : str, optional (default: None)
+        Color in which the ellipse should be plotted
+
     alpha : int, optional (default: 0.25)
-        Alpha value for ellipses
+        Alpha value for ellipse
 
     factors : array, optional (default: np.linspace(0.25, 2.0, 8))
         Multiples of the standard deviations that should be plotted.
@@ -252,4 +256,6 @@ def plot_error_ellipse(ax, mvn, alpha=0.25, factors=np.linspace(0.25, 2.0, 8)):
         ell = Ellipse(xy=mvn.mean, width=2.0 * width, height=2.0 * height,
                       angle=np.degrees(angle))
         ell.set_alpha(alpha)
+        if color is not None:
+            ell.set_color(color)
         ax.add_artist(ell)
