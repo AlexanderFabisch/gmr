@@ -1,3 +1,17 @@
+"""
+===============================
+Learn Time-Indexed Trajectories
+===============================
+
+We learn a GMM from multiple similar trajectories that consist of points
+(t, x_1, x_2), where t is a time variable and x_1 and x_2 are 2D coordinates.
+The GMM is initialized from a Bayesian GMM of sklearn to get a better fit
+of the data, which is otherwise difficult in this case, where we have discrete
+steps in the time dimension and x_1.
+
+We compare the 95 % confidence interval in x_2 between the original data and
+the learned GMM.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
