@@ -74,7 +74,7 @@ def safe_sample(self, alpha):
               random_state=self.random_state)
     sample = mvn.sample(1)[0]
     while (mahalanobis_distance(sample, mvn.mean, mvn.covariance) >
-           chi2(len(sample)).ppf(alpha)):
+           chi2(len(sample) - 1).ppf(alpha)):
         sample = mvn.sample(1)[0]
     return sample
 
