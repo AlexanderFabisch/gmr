@@ -35,7 +35,7 @@ gmm = GMM(n_components=n_components, priors=bgmm.weights_, means=bgmm.means_,
           covariances=bgmm.covariances_, random_state=random_state)
 
 
-def safe_sample(self, alpha=0.1):  # default alpha defines 10% confidence region
+def safe_sample(self, alpha):
     self._check_initialized()
 
     # Safe prior sampling
@@ -49,7 +49,7 @@ def safe_sample(self, alpha=0.1):  # default alpha defines 10% confidence region
     mvn = MVN(mean=self.means[mvn_index], covariance=self.covariances[mvn_index],
               random_state=self.random_state)
     sample = mvn.sample(1)[0]
-    while (mahalanobis_distance(sample, mvn.mean, mvn.covariance) <
+    while (mahalanobis_distance(sample, mvn.mean, mvn.covariance) >
            chi2(len(sample)).ppf(alpha)):
         sample = mvn.sample(1)[0]
     return sample
@@ -66,7 +66,8 @@ sampling_dt = 0.2  # increases sampling frequency
 for t in range(500):
     sampled_path.append(x)
     cgmm = gmm.condition([0, 1], x)
-    x_dot = safe_sample(cgmm)
+    # default alpha defines the confidence region (e.g., 0.7 -> 70 %)
+    x_dot = safe_sample(cgmm, alpha=0.7)
     x = x + sampling_dt * x_dot
 sampled_path = np.array(sampled_path)
 
