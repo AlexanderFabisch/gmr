@@ -73,15 +73,15 @@ def safe_sample(self, alpha):
     mvn = MVN(mean=self.means[mvn_index], covariance=self.covariances[mvn_index],
               random_state=self.random_state)
     sample = mvn.sample(1)[0]
-    while (mahalanobis_distance(sample, mvn.mean, mvn.covariance) >
+    while (mahalanobis_distance(sample, mvn) >
            chi2(len(sample) - 1).ppf(alpha)):
         sample = mvn.sample(1)[0]
     return sample
 
 
-def mahalanobis_distance(x, mean, cov):
-    d = x - mean
-    return d.dot(np.linalg.inv(cov)).dot(d)
+def mahalanobis_distance(x, mvn):
+    d = x - mvn.mean
+    return d.dot(np.linalg.inv(mvn.covariance)).dot(d)
 
 
 sampled_path = []
