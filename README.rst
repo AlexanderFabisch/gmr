@@ -69,19 +69,19 @@ Gallery
 -------
 
 .. image:: doc/sklearn_initialization.png
-  :width: 400
+  :width: 50%
   :alt: Initialization from sklearn
 
 .. image:: doc/confidence_sampling.png
-  :width: 400
+  :width: 50%
   :alt: Sampling from confidence region
 
 .. image:: doc/trajectories.png
-  :width: 400
+  :width: 50%
   :alt: Trajectory representation
 
 .. image:: doc/time_invariant_trajectories.png
-  :width: 400
+  :width: 50%
   :alt: Time-invariant trajectory representation
 
 
