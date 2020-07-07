@@ -54,6 +54,35 @@ There is an implementation of Gaussian Mixture Models for clustering in
 `scikit-learn <http://scikit-learn.org/stable/modules/generated/sklearn.mixture.GMM.html>`_
 as well. Regression could not be easily integrated in the interface of
 sklearn. That is the reason why I put the code in a separate repository.
+It is possible to initialize GMR from sklearn though:
+
+    from sklearn.mixture import GaussianMixture
+    from gmr import GMM
+    gmm_sklearn = GaussianMixture(n_components=3, covariance_type="diag")
+    gmm_sklearn.fit(X)
+    gmm = GMM(
+        n_components=3, priors=gmm_sklearn.weights_, means=gmm_sklearn.means_,
+        covariances=np.array([np.diag(c) for c in gmm_sklearn.covariances_]))
+
+
+Gallery
+-------
+
+.. image:: doc/sklearn_initialization.png
+  :width: 400
+  :alt: Initialization from sklearn
+
+.. image:: doc/confidence_sampling.png
+  :width: 400
+  :alt: Sampling from confidence region
+
+.. image:: doc/trajectories.png
+  :width: 400
+  :alt: Trajectory representation
+
+.. image:: doc/time_invariant_trajectories.png
+  :width: 400
+  :alt: Time-invariant trajectory representation
 
 
 Original Publication(s)
