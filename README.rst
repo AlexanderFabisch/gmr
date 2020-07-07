@@ -70,8 +70,14 @@ Gallery
 
 .. raw:: html
 
-    <img src="doc/sklearn_initialization.png" width="45%"><img src="doc/confidence_sampling.png" width="45%">
-    <img src="doc/trajectories.png" width="45%"><img src="doc/time_invariant_trajectories.png" width="45%">
+    <p>Diagonal covariances</p>
+    <img src="doc/sklearn_initialization.png" width="60%">
+    <p>Sample from confidence interval</p>
+    <img src="doc/confidence_sampling.png" width="60%">
+    <p>Generate trajectories</p>
+    <img src="doc/trajectories.png" width="60%">
+    <p>Sample time-invariant trajectories</p>
+    <img src="doc/time_invariant_trajectories.png" width="60%">
 
 
 Original Publication(s)
