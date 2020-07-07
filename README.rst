@@ -68,21 +68,12 @@ It is possible to initialize GMR from sklearn though::
 Gallery
 -------
 
-.. image:: doc/sklearn_initialization.png
-  :width: 50%
-  :alt: Initialization from sklearn
+.. raw:: html
 
-.. image:: doc/confidence_sampling.png
-  :width: 50%
-  :alt: Sampling from confidence region
-
-.. image:: doc/trajectories.png
-  :width: 50%
-  :alt: Trajectory representation
-
-.. image:: doc/time_invariant_trajectories.png
-  :width: 50%
-  :alt: Time-invariant trajectory representation
+    <img src="doc/sklearn_initialization.png" width="400px">
+    <img src="doc/confidence_sampling.png" width="400px">
+    <img src="doc/trajectories.png" width="400px">
+    <img src="doc/time_invariant_trajectories.png" width="400px">
 
 
 Original Publication(s)
