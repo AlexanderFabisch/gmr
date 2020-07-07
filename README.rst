@@ -15,6 +15,7 @@ Source code repository: https://github.com/AlexanderFabisch/gmr
 
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/gmr.png
 
+
 Example
 -------
 
@@ -31,6 +32,21 @@ For more details, see::
 
     help(gmr)
 
+
+Installation
+------------
+
+Install from `PyPI`_::
+
+    sudo pip install gmr
+
+or from source::
+
+    sudo python setup.py install
+
+.. _PyPi: https://pypi.python.org/pypi
+
+
 How Does It Compare to scikit-learn?
 ------------------------------------
 
@@ -38,6 +54,7 @@ There is an implementation of Gaussian Mixture Models for clustering in
 `scikit-learn <http://scikit-learn.org/stable/modules/generated/sklearn.mixture.GMM.html>`_
 as well. Regression could not be easily integrated in the interface of
 sklearn. That is the reason why I put the code in a separate repository.
+
 
 Original Publication(s)
 -----------------------
@@ -53,16 +70,3 @@ but it does not use the term Gaussian Mixture Regression, which to my knowledge 
 A recent survey on various regression models including GMR is the following:
 
     [3] F. Stulp, O. Sigaud, "Many regression algorithms, one unified model: A review," in Neural Networks, vol. 69, 2015, pp. 60-79, doi: `10.1016/j.neunet.2015.05.005 <https://doi.org/10.1016/j.neunet.2015.05.005>`_.
-
-Installation
-------------
-
-Install from `PyPI`_::
-
-    sudo pip install gmr
-
-or from source::
-
-    sudo python setup.py install
-
-.. _PyPi: https://pypi.python.org/pypi
