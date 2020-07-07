@@ -70,10 +70,8 @@ Gallery
 
 .. raw:: html
 
-    <img src="doc/sklearn_initialization.png" width="400px">
-    <img src="doc/confidence_sampling.png" width="400px">
-    <img src="doc/trajectories.png" width="400px">
-    <img src="doc/time_invariant_trajectories.png" width="400px">
+    <img src="doc/sklearn_initialization.png" width="400px"><img src="doc/confidence_sampling.png" width="400px">
+    <img src="doc/trajectories.png" width="400px"><img src="doc/time_invariant_trajectories.png" width="400px">
 
 
 Original Publication(s)
