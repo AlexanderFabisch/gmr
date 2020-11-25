@@ -199,6 +199,21 @@ class MVN(object):
         covariance = cov_11 - regression_coeffs.dot(cov_12.T)
         return mean, covariance
 
+    def squared_mahalanobis_distance(self, x):
+        """Squared Mahalanobis distance between point and this MVN.
+
+        Parameters
+        ----------
+        x : array, shape (n_features,)
+
+        Returns
+        -------
+        d : float
+            Squared Mahalanobis distance
+        """
+        d = x - self.mean
+        return d.dot(np.linalg.inv(self.covariance)).dot(d)
+
     def to_ellipse(self, factor=1.0):
         """Compute error ellipse.
 

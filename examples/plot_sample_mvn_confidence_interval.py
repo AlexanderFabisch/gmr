@@ -29,15 +29,10 @@ def sample_confidence_region(mvn, n_samples, alpha):
 
 def _sample_confidence_region(mvn, alpha):
     sample = mvn.sample(1)[0]
-    while (mahalanobis_distance(sample, mvn) >
+    while (mvn.squared_mahalanobis_distance(sample) >
            chi2(len(sample) - 1).ppf(alpha)):
         sample = mvn.sample(1)[0]
     return sample
-
-
-def mahalanobis_distance(x, mvn):
-    d = x - mvn.mean
-    return d.dot(np.linalg.inv(mvn.covariance)).dot(d)
 
 
 n_samples = 1000

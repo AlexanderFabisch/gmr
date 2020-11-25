@@ -1,6 +1,6 @@
 import numpy as np
 from gmr.utils import check_random_state
-from nose.tools import assert_equal, assert_less, assert_raises, assert_true
+from nose.tools import assert_equal, assert_less, assert_raises, assert_true, assert_almost_equal
 from numpy.testing import assert_array_almost_equal
 from gmr import MVN, plot_error_ellipse
 
@@ -45,7 +45,7 @@ def test_probability_density():
     mvn = MVN(mean, covariance, random_state=random_state)
 
     x = np.linspace(-100, 100, 201)
-    X = np.vstack(map(np.ravel, np.meshgrid(x, x))).T
+    X = np.vstack(list(map(np.ravel, np.meshgrid(x, x)))).T
     p = mvn.to_probability_density(X)
     approx_int = np.sum(p) * ((x[-1] - x[0]) / 201) ** 2
     assert_less(np.abs(1.0 - approx_int), 0.01)
@@ -174,6 +174,17 @@ def test_regression_without_noise():
     assert_less(cov[0, 0], 1e-10)
 
 
+def test_squared_mahalanobis_distance():
+    """Test Mahalanobis distance."""
+    mvn = MVN(mean=np.zeros(2), covariance=np.eye(2))
+    assert_almost_equal(np.sqrt(mvn.squared_mahalanobis_distance(np.zeros(2))), 0.0)
+    assert_almost_equal(np.sqrt(mvn.squared_mahalanobis_distance(np.array([0, 1]))), 1.0)
+
+    mvn = MVN(mean=np.zeros(2), covariance=4.0 * np.eye(2))
+    assert_almost_equal(np.sqrt(mvn.squared_mahalanobis_distance(np.array([2, 0]))), 1.0)
+    assert_almost_equal(np.sqrt(mvn.squared_mahalanobis_distance(np.array([2, 2]))), np.sqrt(2))
+
+
 def test_plot():
     """Test plot of MVN."""
     random_state = check_random_state(0)
@@ -182,6 +193,8 @@ def test_plot():
     ax = AxisStub()
     plot_error_ellipse(ax, mvn)
     assert_equal(ax.count, 8)
+    plot_error_ellipse(ax, mvn, color="r")
+    assert_equal(ax.count, 16)
 
 
 def test_uninitialized():

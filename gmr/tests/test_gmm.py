@@ -131,7 +131,7 @@ def test_probability_density():
     gmm.from_samples(X)
 
     x = np.linspace(-100, 100, 201)
-    X_grid = np.vstack(map(np.ravel, np.meshgrid(x, x))).T
+    X_grid = np.vstack(list(map(np.ravel, np.meshgrid(x, x)))).T
     p = gmm.to_probability_density(X_grid)
     approx_int = np.sum(p) * ((x[-1] - x[0]) / 201) ** 2
     assert_less(np.abs(1.0 - approx_int), 0.01)
