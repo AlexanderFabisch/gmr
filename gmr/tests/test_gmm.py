@@ -122,6 +122,22 @@ def test_estimate_moments():
     assert_less(np.linalg.norm(gmm.covariances[1] - covariances[1]), 0.04)
 
 
+def test_estimation_from_previous_initialization():
+    global X
+    global random_state
+    global means
+    global covariances
+
+    gmm = GMM(n_components=2, priors=0.5 * np.ones(2), means=np.copy(means),
+              covariances=np.copy(covariances),
+              random_state=check_random_state(2))
+    gmm.from_samples(X, n_iter=2)
+    assert_less(np.linalg.norm(gmm.means[0] - means[0]), 0.01)
+    assert_less(np.linalg.norm(gmm.covariances[0] - covariances[0]), 0.03)
+    assert_less(np.linalg.norm(gmm.means[1] - means[1]), 0.01)
+    assert_less(np.linalg.norm(gmm.covariances[1] - covariances[1]), 0.04)
+
+
 def test_probability_density():
     """Test PDF of GMM."""
     global X
