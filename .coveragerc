@@ -1,3 +1,5 @@
 [run]
+branch = True
+source = gmr
+[report]
 omit = gmr/utils.py
-
