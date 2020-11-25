@@ -5,7 +5,7 @@ gmr
 Gaussian Mixture Models (GMMs) for clustering and regression in Python.
 """
 
-__version__ = "1.3.dev"
+__version__ = "1.3"
 
 from . import gmm, mvn, utils
 

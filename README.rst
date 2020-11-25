@@ -65,16 +65,25 @@ It is possible to initialize GMR from sklearn though::
 Gallery
 -------
 
-.. raw:: html
+.. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/doc/sklearn_initialization.png
+    :width: 60%
 
-    <p>Diagonal covariances</p>
-    <img src="doc/sklearn_initialization.png" width="60%">
-    <p>Sample from confidence interval</p>
-    <img src="doc/confidence_sampling.png" width="60%">
-    <p>Generate trajectories</p>
-    <img src="doc/trajectories.png" width="60%">
-    <p>Sample time-invariant trajectories</p>
-    <img src="doc/time_invariant_trajectories.png" width="60%">
+Diagonal covariances
+
+.. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/doc/confidence_sampling.png
+    :width: 60%
+
+Sample from confidence interval
+
+.. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/doc/trajectories.png
+    :width: 60%
+
+Generate trajectories
+
+.. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/doc/time_invariant_trajectories.png
+    :width: 60%
+
+Sample time-invariant trajectories
 
 
 Original Publication(s)
