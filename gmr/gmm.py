@@ -251,6 +251,9 @@ class GMM(object):
     def sample_confidence_region(self, n_samples, alpha):
         """Sample from alpha confidence region.
 
+        Each MVN is selected with its prior probability and then we
+        sample from the confidence region of the selected MVN.
+
         Parameters
         ----------
         n_samples : int
@@ -285,6 +288,9 @@ class GMM(object):
 
     def is_in_confidence_region(self, x, alpha):
         """Check if sample is in alpha confidence region.
+
+        Check whether the sample lies in the confidence region of the closest
+        MVN according to the Mahalanobis distance.
 
         Parameters
         ----------

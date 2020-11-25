@@ -24,31 +24,39 @@ gmm = GMM(
 
 n_samples = 1000
 
-plt.figure(figsize=(15, 5))
+plt.figure(figsize=(20, 5))
 
-ax = plt.subplot(131)
+ax = plt.subplot(141)
 ax.set_title("Unconstrained Sampling")
 samples = gmm.sample(n_samples)
 ax.scatter(samples[:, 0], samples[:, 1], alpha=0.9, s=1, label="Samples")
 plot_error_ellipses(ax, gmm, factors=(1.0, 2.0), colors=["orange", "orange"])
-ax.set_xlim((-8, 8))
+ax.set_xlim((-10, 10))
 ax.set_ylim((-10, 10))
 
-ax = plt.subplot(132)
+ax = plt.subplot(142)
 ax.set_title(r"95.45 % Confidence Region ($2\sigma$)")
 samples = gmm.sample_confidence_region(n_samples, 0.9545)
 ax.scatter(samples[:, 0], samples[:, 1], alpha=0.9, s=1, label="Samples")
 plot_error_ellipses(ax, gmm, factors=(1.0, 2.0), colors=["orange", "orange"])
-ax.set_xlim((-5, 5))
+ax.set_xlim((-10, 10))
 ax.set_ylim((-10, 10))
 
-ax = plt.subplot(133)
+ax = plt.subplot(143)
 ax.set_title(r"68.27 % Confidence Region ($\sigma$)")
 samples = gmm.sample_confidence_region(n_samples, 0.6827)
 ax.scatter(samples[:, 0], samples[:, 1], alpha=0.9, s=1, label="Samples")
 plot_error_ellipses(ax, gmm, factors=(1.0, 2.0), colors=["orange", "orange"])
-ax.set_xlim((-5, 5))
+ax.set_xlim((-10, 10))
 ax.set_ylim((-10, 10))
 ax.legend()
+
+ax = plt.subplot(144)
+ax.set_title(r"Probability density")
+x, y = np.meshgrid(np.linspace(-10, 10, 100), np.linspace(-10, 10, 100))
+X_test = np.vstack((x.ravel(), y.ravel())).T
+p = gmm.to_probability_density(X_test)
+p = p.reshape(*x.shape)
+plt.contourf(x, y, p)
 
 plt.show()
