@@ -168,6 +168,22 @@ def test_conditional_distribution():
     assert_array_almost_equal(conditional.covariances[1], np.array([[0.3]]))
 
 
+def test_sample_confidence_region():
+    """Test sampling from confidence region."""
+    random_state = check_random_state(0)
+
+    means = np.array([[0.0, 1.0],
+                      [2.0, -1.0]])
+    covariances = np.array([[[0.5, 0.0], [0.0, 5.0]],
+                            [[5.0, 0.0], [0.0, 0.5]]])
+
+    gmm = GMM(n_components=2, priors=np.array([0.5, 0.5]), means=means,
+              covariances=covariances, random_state=random_state)
+    samples = gmm.sample_confidence_region(100, 0.7)
+    for sample in samples:
+        assert_true(gmm.is_in_confidence_region(sample, 0.7))
+
+
 def test_ellipses():
     """Test equiprobable ellipses."""
     random_state = check_random_state(0)

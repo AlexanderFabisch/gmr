@@ -59,22 +59,6 @@ gmm = GMM(n_components=n_components, priors=bgmm.weights_, means=bgmm.means_,
           covariances=bgmm.covariances_, random_state=random_state)
 
 
-def safe_sample(self, alpha):
-    self._check_initialized()
-
-    # Safe prior sampling
-    priors = self.priors.copy()
-    priors[priors < 1.0 / self.n_components] = 0.0
-    priors /= priors.sum()
-    assert abs(priors.sum() - 1.0) < 1e-5
-    mvn_index = self.random_state.choice(self.n_components, size=1, p=priors)[0]
-
-    # Allow only samples from alpha-confidence region
-    mvn = MVN(mean=self.means[mvn_index], covariance=self.covariances[mvn_index],
-              random_state=self.random_state)
-    return mvn.sample_confidence_region(1, alpha)[0]
-
-
 sampled_path = []
 x = np.array([75.0, 90.0])  # left bottom
 sampling_dt = 0.2  # increases sampling frequency
@@ -82,7 +66,7 @@ for t in range(500):
     sampled_path.append(x)
     cgmm = gmm.condition([0, 1], x)
     # default alpha defines the confidence region (e.g., 0.7 -> 70 %)
-    x_dot = safe_sample(cgmm, alpha=0.7)
+    x_dot = cgmm.sample_confidence_region(1, alpha=0.7)[0]
     x = x + sampling_dt * x_dot
 sampled_path = np.array(sampled_path)
 

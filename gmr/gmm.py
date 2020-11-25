@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
+from scipy.stats import chi2
 from .utils import check_random_state
 from .mvn import MVN
 
@@ -246,6 +247,67 @@ class GMM(object):
                 mean=self.means[k], covariance=self.covariances[k],
                 random_state=self.random_state).sample(n_samples=n_samples)
         return samples
+
+    def sample_confidence_region(self, n_samples, alpha):
+        """Sample from alpha confidence region.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+
+        alpha : float
+            Value between 0 and 1 that defines the probability of the
+            confidence region, e.g., 0.6827 for the 1-sigma confidence
+            region or 0.9545 for the 2-sigma confidence region.
+
+        Returns
+        -------
+        X : array, shape (n_samples, n_features)
+            Samples from the confidence region.
+        """
+        self._check_initialized()
+
+        mvn_indices = self.random_state.choice(
+            self.n_components, size=(n_samples,), p=self.priors)
+        mvn_indices.sort()
+        split_indices = np.hstack(
+            ((0,), np.nonzero(np.diff(mvn_indices))[0] + 1, (n_samples,)))
+        clusters = np.unique(mvn_indices)
+        lens = np.diff(split_indices)
+        samples = np.empty((n_samples, self.means.shape[1]))
+        for i, (k, n_samples) in enumerate(zip(clusters, lens)):
+            samples[split_indices[i]:split_indices[i + 1]] = MVN(
+                mean=self.means[k], covariance=self.covariances[k],
+                random_state=self.random_state).sample_confidence_region(
+                n_samples=n_samples, alpha=alpha)
+        return samples
+
+    def is_in_confidence_region(self, x, alpha):
+        """Check if sample is in alpha confidence region.
+
+        Parameters
+        ----------
+        x : array, shape (n_features,)
+            Sample
+
+        alpha : float
+            Value between 0 and 1 that defines the probability of the
+            confidence region, e.g., 0.6827 for the 1-sigma confidence
+            region or 0.9545 for the 2-sigma confidence region.
+
+        Returns
+        -------
+        is_in_confidence_region : bool
+            Is the sample in the alpha confidence region?
+        """
+        self._check_initialized()
+        dists = [MVN(mean=self.means[k], covariance=self.covariances[k]
+                     ).squared_mahalanobis_distance(x)
+                 for k in range(self.n_components)]
+        # we have one degree of freedom less than number of dimensions
+        n_dof = len(x) - 1
+        return min(dists) <= chi2(n_dof).ppf(alpha)
 
     def to_responsibilities(self, X):
         """Compute responsibilities of each MVN for each sample.
