@@ -1,6 +1,7 @@
 import numpy as np
 from .utils import check_random_state, pinvh
 import scipy as sp
+from scipy.stats import chi2
 
 
 def invert_indices(n_features, indices):
@@ -81,6 +82,56 @@ class MVN(object):
         self._check_initialized()
         return self.random_state.multivariate_normal(
             self.mean, self.covariance, size=(n_samples,))
+
+    def sample_confidence_region(self, n_samples, alpha):
+        """Sample from alpha confidence region.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+
+        alpha : float
+            Value between 0 and 1 that defines the probability of the
+            confidence region, e.g., 0.6827 for the 1-sigma confidence
+            region or 0.9545 for the 2-sigma confidence region.
+
+        Returns
+        -------
+        X : array, shape (n_samples, n_features)
+            Samples from the confidence region.
+        """
+        return np.array([self._one_sample_confidence_region(alpha)
+                         for _ in range(n_samples)])
+
+    def _one_sample_confidence_region(self, alpha):
+        x = self.sample(1)[0]
+        while not self.is_in_confidence_region(x, alpha):
+            x = self.sample(1)[0]
+        return x
+
+    def is_in_confidence_region(self, x, alpha):
+        """Check if sample is in alpha confidence region.
+
+        Parameters
+        ----------
+        x : array, shape (n_features,)
+            Sample
+
+        alpha : float
+            Value between 0 and 1 that defines the probability of the
+            confidence region, e.g., 0.6827 for the 1-sigma confidence
+            region or 0.9545 for the 2-sigma confidence region.
+
+        Returns
+        -------
+        is_in_confidence_region : bool
+            Is the sample in the alpha confidence region?
+        """
+        self._check_initialized()
+        # we have one degree of freedom less than number of dimensions
+        n_dof = len(x) - 1
+        return self.squared_mahalanobis_distance(x) <= chi2(n_dof).ppf(alpha)
 
     def to_probability_density(self, X):
         """Compute probability density.

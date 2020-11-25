@@ -1,6 +1,6 @@
 import numpy as np
 from gmr.utils import check_random_state
-from nose.tools import assert_equal, assert_less, assert_raises, assert_true, assert_almost_equal
+from nose.tools import assert_equal, assert_less, assert_raises, assert_true, assert_false, assert_almost_equal
 from numpy.testing import assert_array_almost_equal
 from gmr import MVN, plot_error_ellipse
 
@@ -37,6 +37,40 @@ def test_estimate_moments():
     mvn2.from_samples(X2)
     assert_less(np.linalg.norm(mvn2.mean - actual_mean), 0.03)
     assert_less(np.linalg.norm(mvn2.covariance - actual_covariance), 0.03)
+
+
+def test_in_confidence_region():
+    """Test check for confidence region."""
+    mvn = MVN(mean=np.array([1.0, 2.0]),
+              covariance=np.array([[1.0, 0.0], [0.0, 4.0]]))
+
+    alpha_1sigma = 0.6827
+    alpha_2sigma = 0.9545
+
+    assert_true(mvn.is_in_confidence_region(mvn.mean, alpha_1sigma))
+    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([1.0, 0.0]), alpha_1sigma))
+    assert_false(mvn.is_in_confidence_region(mvn.mean + np.array([1.001, 0.0]), alpha_1sigma))
+
+    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([2.0, 0.0]), alpha_2sigma))
+    assert_false(mvn.is_in_confidence_region(mvn.mean + np.array([3.0, 0.0]), alpha_2sigma))
+
+    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 1.0]), alpha_1sigma))
+    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 2.0]), alpha_1sigma))
+    assert_false(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 3.0]), alpha_1sigma))
+
+    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 4.0]), alpha_2sigma))
+    assert_false(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 4.001]), alpha_2sigma))
+
+
+def test_sample_confidence_region():
+    """Test sampling of confidence region."""
+    random_state = check_random_state(42)
+    mvn = MVN(mean=np.array([1.0, 2.0]),
+              covariance=np.array([[1.0, 0.0], [0.0, 4.0]]),
+              random_state=random_state)
+    samples = mvn.sample_confidence_region(100, 0.9)
+    for sample in samples:
+        assert_true(mvn.is_in_confidence_region(sample, 0.9))
 
 
 def test_probability_density():

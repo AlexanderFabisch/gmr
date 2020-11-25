@@ -10,7 +10,6 @@ Gaussian these would correspond to the 2-sigma and sigma intervals
 respectively.
 """
 import numpy as np
-from scipy.stats import chi2
 import matplotlib.pyplot as plt
 from gmr import MVN, plot_error_ellipse
 
@@ -20,20 +19,6 @@ mvn = MVN(
     mean=np.array([0.0, 0.0]),
     covariance=np.array([[1.0, 2.0], [2.0, 9.0]]),
     random_state=random_state)
-
-
-def sample_confidence_region(mvn, n_samples, alpha):
-    return np.array([_sample_confidence_region(mvn, alpha)
-                     for _ in range(n_samples)])
-
-
-def _sample_confidence_region(mvn, alpha):
-    sample = mvn.sample(1)[0]
-    while (mvn.squared_mahalanobis_distance(sample) >
-           chi2(len(sample) - 1).ppf(alpha)):
-        sample = mvn.sample(1)[0]
-    return sample
-
 
 n_samples = 1000
 
@@ -49,7 +34,7 @@ ax.set_ylim((-10, 10))
 
 ax = plt.subplot(132)
 ax.set_title(r"95.45 % Confidence Region ($2\sigma$)")
-samples = sample_confidence_region(mvn, n_samples, 0.9545)
+samples = mvn.sample_confidence_region(n_samples, 0.9545)
 ax.scatter(samples[:, 0], samples[:, 1], alpha=0.9, s=1, label="Samples")
 plot_error_ellipse(ax, mvn, factors=(1.0, 2.0), color="orange")
 ax.set_xlim((-5, 5))
@@ -57,7 +42,7 @@ ax.set_ylim((-10, 10))
 
 ax = plt.subplot(133)
 ax.set_title(r"68.27 % Confidence Region ($\sigma$)")
-samples = sample_confidence_region(mvn, n_samples, 0.6827)
+samples = mvn.sample_confidence_region(n_samples, 0.6827)
 ax.scatter(samples[:, 0], samples[:, 1], alpha=0.9, s=1, label="Samples")
 plot_error_ellipse(ax, mvn, factors=(1.0, 2.0), color="orange")
 ax.set_xlim((-5, 5))

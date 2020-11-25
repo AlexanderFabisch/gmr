@@ -72,11 +72,7 @@ def safe_sample(self, alpha):
     # Allow only samples from alpha-confidence region
     mvn = MVN(mean=self.means[mvn_index], covariance=self.covariances[mvn_index],
               random_state=self.random_state)
-    sample = mvn.sample(1)[0]
-    while (mvn.squared_mahalanobis_distance(sample) >
-           chi2(len(sample) - 1).ppf(alpha)):
-        sample = mvn.sample(1)[0]
-    return sample
+    return mvn.sample_confidence_region(1, alpha)[0]
 
 
 sampled_path = []
