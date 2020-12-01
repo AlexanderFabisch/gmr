@@ -294,6 +294,124 @@ class MVN(object):
         width, height = factor * np.sqrt(vals)
         return angle, width, height
 
+    def _sqrt_cov(self, C):
+        """Compute square root of a symmetric matrix.
+
+        Parameters
+        ----------
+        C : array, shape (n_features, n_features)
+            Symmetric matrix.
+
+        Returns
+        -------
+        sqrt(C) : array, shape (n_features, n_features)
+            Square root of covariance. The square root of a square
+            matrix is defined as
+            :math:`\Sigma^{\frac{1}{2}} = B \sqrt(D) B^T`, where
+            :math:`\Sigma = B D B^T` is the Eigen decomposition of the
+            covariance.
+        """
+        D, B = np.linalg.eigh(C)
+        # HACK: avoid numerical problems
+        D = np.maximum(D, np.finfo(np.float).eps)
+        return B.dot(np.diag(np.sqrt(D))).dot(B.T)
+
+    def sigma_points(self, alpha=1e-3, kappa=0.0):
+        """Compute sigma points for unscented transform.
+
+        The unscented transform allows us to estimate the resulting MVN from
+        applying a nonlinear transformation :math:`f` to this MVN. In order to
+        do this, you have to transform the sigma points obtained from this
+        function with :math:`f` and then create the new MVN with
+        :func:`MVN.estimate_from_sigma_points`. The unscented transform is most
+        commonly used in the Unscented Kalman Filter (UKF).
+
+        Parameters
+        ----------
+        alpha : float, optional (default: 1e-3)
+            Determines the spread of the sigma points around the mean and is
+            usually set to a small positive value.
+
+        kappa : float, optional (default: 0)
+            A secondary scaling parameter which is usually set to 0.
+
+        Returns
+        -------
+        sigma_points : array, shape (2 * n_features + 1, n_features)
+            Query points that have to be transformed to estimate the resulting
+            MVN.
+        """
+        self._check_initialized()
+
+        n_features = len(self.mean)
+        lmbda = alpha ** 2 * (n_features + kappa) - n_features
+        offset = self._sqrt_cov((n_features + lmbda) * self.covariance)
+
+        points = np.empty(((2 * n_features + 1), n_features))
+        points[0, :] = self.mean
+        for i in range(n_features):
+            points[1 + i, :] = self.mean + offset[i]
+            points[1 + n_features + i:, :] = self.mean - offset[i]
+        return points
+
+    def estimate_from_sigma_points(self, transformed_sigma_points, alpha=1e-3, beta=2.0, kappa=0.0, random_state=None):
+        """Estimate new MVN from sigma points through the unscented transform.
+
+        See :func:`MVN.sigma_points` for more details.
+
+        Parameters
+        ----------
+        transformed_sigma_points : array, shape (2 * n_features + 1, n_features)
+            Query points that were transformed to estimate the resulting MVN.
+
+        alpha : float, optional (default: 1e-3)
+            Determines the spread of the sigma points around the mean and is
+            usually set to a small positive value. Note that this value has
+            to match the value that was used to create the sigma points.
+
+        beta : float, optional (default: 2)
+            Encodes information about the distribution. For Gaussian
+            distributions, beta=2 is the optimal choice.
+
+        kappa : float, optional (default: 0)
+            A secondary scaling parameter which is usually set to 0. Note that
+            this value has to match the value that was used to create the
+            sigma points.
+
+        random_state : int or RandomState, optional (default: random state of self)
+            If an integer is given, it fixes the seed. Defaults to the global
+            numpy random number generator.
+
+        Returns
+        -------
+        mvn : MVN
+            Transformed MVN: f(self).
+        """
+        self._check_initialized()
+
+        n_features = len(self.mean)
+        lmbda = alpha ** 2 * (n_features + kappa) - n_features
+
+        mean_weight_0 = lmbda / (n_features + lmbda)
+        cov_weight_0 = lmbda / (n_features + lmbda) + (1 - alpha ** 2 + beta)
+        weights_i = 1.0 / (2.0 * (n_features + lmbda))
+        mean_weights = np.empty(len(transformed_sigma_points))
+        mean_weights[0] = mean_weight_0
+        mean_weights[1:] = weights_i
+        cov_weights = np.empty(len(transformed_sigma_points))
+        cov_weights[0] = cov_weight_0
+        cov_weights[1:] = weights_i
+
+        mean = np.sum(mean_weights[:, np.newaxis] * transformed_sigma_points,
+                      axis=0)
+        sigma_points_minus_mean = transformed_sigma_points - mean
+        covariance = sigma_points_minus_mean.T.dot(
+            np.diag(cov_weights)).dot(sigma_points_minus_mean)
+
+        if random_state is None:
+            random_state = self.random_state
+        return MVN(mean=mean, covariance=covariance, random_state=random_state)
+
 
 def plot_error_ellipse(ax, mvn, color=None, alpha=0.25,
                        factors=np.linspace(0.25, 2.0, 8)):
