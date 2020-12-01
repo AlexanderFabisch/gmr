@@ -248,3 +248,88 @@ def test_uninitialized():
     assert_raises(ValueError, mvn.condition, np.zeros(0), np.zeros(0))
     assert_raises(ValueError, mvn.predict, np.zeros(0), np.zeros(0))
     assert_raises(ValueError, mvn.to_ellipse)
+
+
+def test_unscented_transform_linear_transformation():
+    """Test unscented transform with a linear transformation."""
+    mvn = MVN(mean=np.zeros(2), covariance=np.eye(2), random_state=42)
+
+    points = mvn.sigma_points()
+    new_points = np.copy(points)
+    new_points[:, 1] *= 10
+    new_points += np.array([0.5, -3.0])
+
+    transformed_mvn = mvn.estimate_from_sigma_points(new_points)
+    assert_array_almost_equal(transformed_mvn.mean, np.array([0.5, -3.0]))
+    assert_array_almost_equal(
+        transformed_mvn.covariance,
+        np.array([[1.0, 0.0], [0.0, 100.0]])
+    )
+
+    sample1 = transformed_mvn.sample(1)
+    sample2 = mvn.estimate_from_sigma_points(new_points, random_state=42).sample(1)
+    assert_array_almost_equal(sample1, sample2)
+
+
+def test_unscented_transform_linear_combination():
+    """Test unscented transform with a linear combination."""
+    mvn = MVN(mean=np.zeros(2), covariance=np.eye(2), random_state=42)
+
+    points = mvn.sigma_points()
+    new_points = np.empty_like(points)
+    new_points[:, 0] = points[:, 1]
+    new_points[:, 1] = points[:, 0] - 0.5 * points[:, 1]
+    new_points += np.array([-0.5, 3.0])
+
+    transformed_mvn = mvn.estimate_from_sigma_points(new_points)
+    assert_array_almost_equal(transformed_mvn.mean, np.array([-0.5, 3.0]))
+    assert_array_almost_equal(
+        transformed_mvn.covariance,
+        np.array([[1.0, -0.5], [-0.5, 1.25]])
+    )
+
+
+def test_unscented_transform_projection_to_more_dimensions():
+    """Test unscented transform with a projection to 3D."""
+    mvn = MVN(mean=np.zeros(2), covariance=np.eye(2), random_state=42)
+
+    points = mvn.sigma_points()
+
+    def f(points):
+        new_points = np.empty((len(points), 3))
+        new_points[:, 0] = points[:, 0]
+        new_points[:, 1] = points[:, 1]
+        new_points[:, 2] = -0.5 * points[:, 0] + 0.5 * points[:, 1]
+        new_points += np.array([-0.5, 3.0, 10.0])
+        return new_points
+
+    transformed_mvn = mvn.estimate_from_sigma_points(f(points))
+    assert_array_almost_equal(transformed_mvn.mean, np.array([-0.5, 3.0, 10.0]))
+    assert_array_almost_equal(
+        transformed_mvn.covariance,
+        np.array([[1.0, 0.0, -0.5],
+                  [0.0, 1.0, 0.5],
+                  [-0.5, 0.5, 0.5]])
+    )
+
+
+def test_unscented_transform_quadratic():
+    """Test unscented transform with a quadratic transformation."""
+    mvn = MVN(mean=np.zeros(2), covariance=np.eye(2), random_state=42)
+
+    points = mvn.sigma_points(alpha=0.67, kappa=5.0)
+
+    def f(points):
+        new_points = np.empty_like(points)
+        new_points[:, 0] = points[:, 0] ** 2 * np.sign(points[:, 0])
+        new_points[:, 1] = points[:, 1] ** 2 * np.sign(points[:, 1])
+        new_points += np.array([5.0, -3.0])
+        return new_points
+
+    transformed_mvn = mvn.estimate_from_sigma_points(f(points), alpha=0.67, kappa=5.0)
+    assert_array_almost_equal(transformed_mvn.mean, np.array([5.0, -3.0]))
+    assert_array_almost_equal(
+        transformed_mvn.covariance,
+        np.array([[3.1, 0.0], [0.0, 3.1]]),
+        decimal=1
+    )
