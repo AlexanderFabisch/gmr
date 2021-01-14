@@ -68,22 +68,22 @@ Gallery
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/doc/sklearn_initialization.png
     :width: 60%
 
-Diagonal covariances
+`Diagonal covariances <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_iris_from_sklearn.py>`_
 
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/doc/confidence_sampling.png
     :width: 60%
 
-Sample from confidence interval
+`Sample from confidence interval <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_sample_mvn_confidence_interval.py>`_
 
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/doc/trajectories.png
     :width: 60%
 
-Generate trajectories
+`Generate trajectories <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_trajectories.py>`_
 
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/doc/time_invariant_trajectories.png
     :width: 60%
 
-Sample time-invariant trajectories
+`Sample time-invariant trajectories <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_time_invariant_trajectories.py>`_
 
 
 Original Publication(s)
