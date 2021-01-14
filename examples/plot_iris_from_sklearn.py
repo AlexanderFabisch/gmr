@@ -6,6 +6,7 @@ Initialize GMM from sklearn
 We will cluster the Iris dataset but we will use sklearn to initialize
 our GMM. sklearn allows restricted covariances such as diagonal covariances.
 """
+print(__doc__)
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.decomposition import PCA

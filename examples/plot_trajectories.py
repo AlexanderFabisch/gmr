@@ -12,6 +12,8 @@ steps in the time dimension and x_1.
 We compare the 95 % confidence interval in x_2 between the original data and
 the learned GMM.
 """
+print(__doc__)
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse

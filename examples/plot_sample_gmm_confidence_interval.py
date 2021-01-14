@@ -9,6 +9,8 @@ sampling from the 95.45 % and 68.27 % confidence regions. In a one-dimensional
 Gaussian these would correspond to the 2-sigma and sigma intervals
 respectively.
 """
+print(__doc__)
+
 import numpy as np
 import matplotlib.pyplot as plt
 from gmr import GMM, plot_error_ellipses

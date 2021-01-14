@@ -22,12 +22,13 @@ have low prior probability and we resample from a selected Gaussian until
 we have a velocity that lies within the 70 % confidence interval of the
 Gaussian. We do this to avoid divergence from the training data.
 """
+print(__doc__)
+
 from svgpathtools import svg2paths  # pip install svgpathtools
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import chi2
 from sklearn.mixture import BayesianGaussianMixture
-from gmr import GMM, MVN
+from gmr import GMM
 
 
 paths = svg2paths("examples/8_plain.svg")[0]  # only works if started from gmr's root directory

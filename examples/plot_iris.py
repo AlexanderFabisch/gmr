@@ -11,6 +11,7 @@ two with PCA from sklearn. We will also use sklearn to load the dataset.
 We display samples by dots with colors indicating their true class.
 The clusters are represented by their error ellipses.
 """
+print(__doc__)
 from sklearn.datasets import load_iris
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
