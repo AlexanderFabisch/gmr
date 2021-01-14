@@ -16,7 +16,9 @@ Source code repository: https://github.com/AlexanderFabisch/gmr
 Example
 -------
 
-Estimate GMM from samples and sample from GMM::
+Estimate GMM from samples and sample from GMM:
+
+.. code-block:: python
 
     from gmr import GMM
 
@@ -25,7 +27,9 @@ Estimate GMM from samples and sample from GMM::
     X_sampled = gmm.sample(100)
 
 
-For more details, see::
+For more details, see:
+
+.. code-block:: python
 
     help(gmr)
 
@@ -33,11 +37,15 @@ For more details, see::
 Installation
 ------------
 
-Install from `PyPI`_::
+Install from `PyPI`_:
+
+.. code-block:: bash
 
     sudo pip install gmr
 
-or from source::
+or from source:
+
+.. code-block:: bash
 
     sudo python setup.py install
 
@@ -51,7 +59,9 @@ There is an implementation of Gaussian Mixture Models for clustering in
 `scikit-learn <http://scikit-learn.org/stable/modules/generated/sklearn.mixture.GMM.html>`_
 as well. Regression could not be easily integrated in the interface of
 sklearn. That is the reason why I put the code in a separate repository.
-It is possible to initialize GMR from sklearn though::
+It is possible to initialize GMR from sklearn though:
+
+.. code-block:: python
 
     from sklearn.mixture import GaussianMixture
     from gmr import GMM
@@ -84,6 +94,39 @@ Gallery
     :width: 60%
 
 `Sample time-invariant trajectories <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_time_invariant_trajectories.py>`_
+
+You can find all examples `here <https://github.com/AlexanderFabisch/gmr/tree/master/examples>`_.
+
+
+Saving a Model
+--------------
+
+This library does not directly offer a function to store fitted models. Since
+the implementation is pure Python, it is possible, however, to use standard
+Python tools to store Python objects. For example, you can use pickle to
+temporarily store a GMM:
+
+.. code-block:: python
+
+    import numpy as np
+    import pickle
+    import gmr
+    gmm = gmr.GMM(n_components=2)
+    gmm.from_samples(X=np.random.randn(1000, 3))
+
+    # Save object gmm to file 'file'
+    pickle.dump(gmm, open("file", "wb"))
+    # Load object from file 'file'
+    gmm2 = pickle.load(open("file", "rb"))
+
+It might be required to store models more permanently than in a pickle file,
+which might break with a change of the library or with the Python version.
+In this case you can choose a storage format that you like and store the
+attributes `gmm.priors`, `gmm.means`, and `gmm.covariances`. These can be
+used in the constructor of the GMM class to recreate the object and they can
+also be used in other libraries that provide a GMM implementation. The
+MVN class only needs the attributes `mean` and `covariance` to define the
+model.
 
 
 Original Publication(s)
