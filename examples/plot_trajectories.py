@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from sklearn.mixture import BayesianGaussianMixture
 from itertools import cycle
-from gmr import GMM, plot_error_ellipses, kmeansplusplus_initialization, covariance_initialization, plot_error_ellipse
+from gmr import GMM, kmeansplusplus_initialization, covariance_initialization
 from gmr.utils import check_random_state
 
 
