@@ -131,8 +131,8 @@ MVN class only needs the attributes `mean` and `covariance` to define the
 model.
 
 
-Original Publication(s)
------------------------
+Publications
+------------
 
 The first publication that presents the GMR algorithm is
 
@@ -145,3 +145,5 @@ but it does not use the term Gaussian Mixture Regression, which to my knowledge 
 A recent survey on various regression models including GMR is the following:
 
     [3] F. Stulp, O. Sigaud, "Many regression algorithms, one unified model: A review," in Neural Networks, vol. 69, 2015, pp. 60-79, doi: `10.1016/j.neunet.2015.05.005 <https://doi.org/10.1016/j.neunet.2015.05.005>`_.
+
+Sylvain Calinon has a good introduction in his `slides on nonlinear regression <http://calinon.ch/misc/EE613/EE613-slides-9.pdf>`_ for his `machine learning course <http://calinon.ch/teaching_EPFL.htm>`_.
