@@ -6,6 +6,10 @@ gmr
    :target: https://travis-ci.org/AlexanderFabisch/gmr
    :alt: Travis
 
+.. image:: https://zenodo.org/badge/17119390.svg
+   :target: https://zenodo.org/badge/latestdoi/17119390
+   :alt: DOI (Zenodo)
+
 Gaussian Mixture Models (GMMs) for clustering and regression in Python.
 
 Source code repository: https://github.com/AlexanderFabisch/gmr
