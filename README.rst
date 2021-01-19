@@ -12,7 +12,7 @@ Source code repository: https://github.com/AlexanderFabisch/gmr
 
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/gmr.png
 
-`(Source code of example) <https://github.com/AlexanderFabisch/gmr/blob/doc/save/examples/plot_regression.py>`_
+`(Source code of example) <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_regression.py>`_
 
 
 Example
