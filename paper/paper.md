@@ -127,7 +127,7 @@ $p(\boldsymbol{y}|\boldsymbol{x}=0.5)$. There are three peaks that correspond
 to three different valid predictions. Each peak is represented by at least one
 of the Gaussians of the GMM.
 
-We can use GMR to represent demonstrated motions. Here is a example in 2D, in
+We can use GMR to represent demonstrated motions. Here is an example in 2D, in
 which we have a dataset that is a sequence of positions $\boldsymbol{x}$ and
 corresponding velocities $\dot{\boldsymbol{x}}$. We train a GMM to represent
 $p(\boldsymbol{x}, \dot{\boldsymbol{x}})$. Then we can generate a new
