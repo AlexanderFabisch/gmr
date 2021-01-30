@@ -22,11 +22,11 @@ regression approach that models probability distributions rather than
 functions. Hence, it is possible to model multimodal mappings.
 
 In GMR we first learn a joint probability distribution
-$p(\boldsymbol{x}, \boldsymbol{y})$ of input ($\boldsymbol{x}$) and output
-($\boldsymbol{y}$) variables through expectation maximization [@Dempster1977]
-and then compute the conditional distribution
-$p(\boldsymbol{y}|\boldsymbol{x})$ to make predictions. Thus, training is the
-same procedure as in a standard Gaussian mixture model (GMM).
+$p(\boldsymbol{x}, \boldsymbol{y})$ of input $\boldsymbol{x}$ and output
+$\boldsymbol{y}$ through expectation maximization [@Dempster1977] and then
+compute the conditional distribution $p(\boldsymbol{y}|\boldsymbol{x})$
+to make predictions. Thus, training is the same procedure as in a standard
+Gaussian mixture model (GMM).
 
 # Statement of Need
 
@@ -39,6 +39,7 @@ is not available in scikit-learn and, thus, will be provided by gmr.
 The library gmr provides a simple interface and several useful features to
 deal with multimodal regression, mixtures of Gaussians, and multivariate
 Gaussian distributions:
+
 * EM implementation that only requires numpy and scipy
 * computation of conditional distributions
 * sampling from confidence regions of multivariate Gaussians
@@ -115,7 +116,7 @@ $$p(\boldsymbol{y}|\boldsymbol{x}) =
 # Examples
 
 Here is an example of a dataset where multiple outputs $\boldsymbol{y}$ are
-valid predictions for one input $\boldsymbol{y}$.
+valid predictions for one input $\boldsymbol{x}$.
 
 ![Multimodal regression.\label{fig:multimodal_regression}](multimodal_regression.png)
 
