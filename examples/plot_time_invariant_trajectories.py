@@ -71,6 +71,10 @@ for t in range(500):
     x = x + sampling_dt * x_dot
 sampled_path = np.array(sampled_path)
 
-plt.plot(sampled_path[:, 0], sampled_path[:, 1])
-plt.plot(X[:, 0], X[:, 1], alpha=0.2)
+plt.plot(X[:, 0], X[:, 1], alpha=0.2, label="Demonstration")
+plt.plot(sampled_path[:, 0], sampled_path[:, 1], label="Reproduction")
+plt.xlabel("$x_1$")
+plt.ylabel("$x_2$")
+plt.legend()
+plt.tight_layout()
 plt.show()

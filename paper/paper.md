@@ -104,8 +104,37 @@ $$p(\boldsymbol{y}|\boldsymbol{x}) =
 
 # Example
 
-- examples
-- Mention (if applicable) a representative set of past or ongoing research projects
-  using the software and recent scholarly publications enabled by it.
+Here is an example of a dataset where multiple outputs $\boldsymbol{y}$ are
+valid predictions for one input $\boldsymbol{y}$.
+
+![Multimodal regression.\label{fig:multimodal_regression}](multimodal_regression.png)
+
+On the left side of Figure \autoref{fig:multimodal_regression} you see the
+training data and the fitted GMM indicated by ellipses corresponding to its
+components. On the right side you see the predicted probability density
+$p(\boldsymbol{y}|\boldsymbol{x}=0.5)$. There are three peaks that correspond
+to three different valid predictions. Each peak is represented by at least one
+of the Gaussians of the GMM.
+
+We can use GMR to represent demonstrated motions. Here is a example in 2D, in
+which we have a dataset that is a sequence of positions $\boldsymbol{x}$ and
+corresponding velocities $\dot{\boldsymbol{x}}$. We train a GMM to represent
+$p(\boldsymbol{x}, \dot{\boldsymbol{x}})$. Then we can generate a new
+trajectory by iteratively sampling
+$\dot{\boldsymbol{x}}_t \sim p(\dot{\boldsymbol{x}}|\boldsymbol{x}=\boldsymbol{x}_t)$
+and computing the next position as
+$\boldsymbol{x}_{t+1} = \boldsymbol{x}_t + \Delta t \dot{\boldsymbol{x}}_t$.
+
+![Imitation learning.\label{fig:imitation_learning}](imitation.png)
+
+In Figure \autoref{fig:imitation_learning} we can see that in the middle of
+the eight we have multiple modes: one velocity vector would lead to the left
+and one to the right. Sampling from the conditional GMM is only one possible
+solution here. Another one would be to select the component that contributes
+the most to the probability density and take its mean. When we sample, we
+often want to ensure that we do not end up in a region of low probability.
+Hence, we can resample as long as we are not in an $\alpha$-confidence region,
+where $\alpha \in \left[0, 1\right]$. This strategy is used here and is
+directly provided by the library.
 
 # References
