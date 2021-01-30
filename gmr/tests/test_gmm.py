@@ -419,3 +419,24 @@ def test_gmm_to_mvn_vs_mvn():
     assert_array_almost_equal(mvn_from_gmm.mean, mvn.mean)
     assert_array_almost_equal(
         mvn_from_gmm.covariance, mvn.covariance, decimal=3)
+
+
+def test_extract_mvn_negative_idx():
+    gmm = GMM(n_components=2, priors=0.5 * np.ones(2), means=np.zeros((2, 2)),
+              covariances=[np.eye(2)] * 2)
+    assert_raises(ValueError, gmm.extract_mvn, -1)
+
+
+def test_extract_mvn_idx_too_high():
+    gmm = GMM(n_components=2, priors=0.5 * np.ones(2), means=np.zeros((2, 2)),
+              covariances=[np.eye(2)] * 2)
+    assert_raises(ValueError, gmm.extract_mvn, 2)
+
+
+def test_extract_mvns():
+    gmm = GMM(n_components=2, priors=0.5 * np.ones(2),
+              means=np.array([[1, 2], [3, 4]]), covariances=[np.eye(2)] * 2)
+    mvn0 = gmm.extract_mvn(0)
+    assert_array_almost_equal(mvn0.mean, np.array([1, 2]))
+    mvn1 = gmm.extract_mvn(1)
+    assert_array_almost_equal(mvn1.mean, np.array([3, 4]))
