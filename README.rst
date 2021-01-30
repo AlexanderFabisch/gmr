@@ -47,13 +47,13 @@ Install from `PyPI`_:
 
 .. code-block:: bash
 
-    sudo pip install gmr
+    pip install gmr
 
 or from source:
 
 .. code-block:: bash
 
-    sudo python setup.py install
+    python setup.py install
 
 .. _PyPi: https://pypi.python.org/pypi
 
