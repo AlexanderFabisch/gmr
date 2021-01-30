@@ -28,15 +28,25 @@ and then compute the conditional distribution
 $p(\boldsymbol{y}|\boldsymbol{x})$ to make predictions. Thus, training is the
 same procedure as in a standard Gaussian mixture model (GMM).
 
+# Statement of Need
+
 The library gmr is fully compatible with scikit-learn [@Pedregosa2011]. It
 has its own implementation of expectation maximization (EM), but it can also
 be initialized with a GMM from sklearn, which means that we can also initialize
 it from a Bayesian GMM of scikit-learn. The prediction process for regression
-is not available in scikit-learn and will be provided by gmr.
+is not available in scikit-learn and, thus, will be provided by gmr.
 
-# Statement of Need
-
-TODO
+The library gmr provides a simple interface and several useful features to
+deal with multimodal regression, mixtures of Gaussians, and multivariate
+Gaussian distributions:
+* EM implementation that only requires numpy and scipy
+* computation of conditional distributions
+* sampling from confidence regions of multivariate Gaussians
+* collapsing a GMM to a single Gaussian
+* extraction of individual Gaussians from a (conditional) GMM
+* plotting of covariance ellipses
+* unscented transform [@Uhlmann1995] to estimate the effect of a nonlinear
+  function on a Gaussian distribution
 
 # Background
 
@@ -102,7 +112,7 @@ $$p(\boldsymbol{y}|\boldsymbol{x}) =
                   {\boldsymbol{\mu}_{\boldsymbol{y}|\boldsymbol{x}}}_k,
                   {\boldsymbol{\Sigma}_{\boldsymbol{y}|\boldsymbol{x}}}_k).$$
 
-# Example
+# Examples
 
 Here is an example of a dataset where multiple outputs $\boldsymbol{y}$ are
 valid predictions for one input $\boldsymbol{y}$.
