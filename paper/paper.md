@@ -1,6 +1,8 @@
 ---
 title: 'gmr: Gaussian Mixture Regression'
 tags:
+  - Python
+  - machine learning
   - regression
 authors:
  - name: Alexander Fabisch
@@ -37,6 +39,12 @@ is not available in scikit-learn and will be provided by gmr.
 TODO
 
 # Background
+
+Gaussian mixture regression via EM has been proposed first by @Ghahramani1994.
+@Calinon2007 introduced the term Gaussian mixture regression in the context of
+imitation learning for trajectories of robots and many publications that use
+GMR in this domain followed. @Stulp2015 present Gaussian mixture regression in
+a more recent survey.
 
 ## Training
 
@@ -77,7 +85,7 @@ $$\boldsymbol{\mu}_{\boldsymbol{y}|\boldsymbol{x}}
 $$\boldsymbol{\Sigma}_{\boldsymbol{y} | \boldsymbol{x}}
     = \boldsymbol{\Sigma}_{\boldsymbol{y}\boldsymbol{y}} - \boldsymbol{\Sigma}_{\boldsymbol{y}\boldsymbol{x}} \boldsymbol{\Sigma}_{\boldsymbol{x}\boldsymbol{x}}^{-1} \boldsymbol{\Sigma}_{\boldsymbol{x}\boldsymbol{y}}.$$
 In a Gaussian mixture model we compute the conditional distribution of each
-individual Gaussian and the priors
+individual Gaussian and their priors
 $${\pi_{\boldsymbol{y}|\boldsymbol{x}}}_k =
 \frac{
 \mathcal{N}_k(\boldsymbol{x}|{\boldsymbol{\mu}_{\boldsymbol{x}}}_k,
@@ -94,14 +102,10 @@ $$p(\boldsymbol{y}|\boldsymbol{x}) =
                   {\boldsymbol{\mu}_{\boldsymbol{y}|\boldsymbol{x}}}_k,
                   {\boldsymbol{\Sigma}_{\boldsymbol{y}|\boldsymbol{x}}}_k).$$
 
-# Application
+# Example
 
-TODO
-
-- connection to sklearn
 - examples
-- references: GMR, sklearn
-- math: conditioning
-- Mention (if applicable) a representative set of past or ongoing research projects using the software and recent scholarly publications enabled by it.
+- Mention (if applicable) a representative set of past or ongoing research projects
+  using the software and recent scholarly publications enabled by it.
 
 # References
