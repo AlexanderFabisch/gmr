@@ -22,15 +22,15 @@ functions. Hence, it is possible to model multimodal mappings.
 In GMR we first learn a joint probability distribution
 $p(\boldsymbol{x}, \boldsymbol{y})$ of input ($\boldsymbol{x}$) and output
 ($\boldsymbol{y}$) variables through expectation maximization [@Dempster1977]
-and then compute the conditional distribution $p(y|x)$ to make predictions.
-Thus, training is the same procedure as in a standard Gaussian mixture model
-(GMM).
+and then compute the conditional distribution
+$p(\boldsymbol{y}|\boldsymbol{x})$ to make predictions. Thus, training is the
+same procedure as in a standard Gaussian mixture model (GMM).
 
 The library gmr is fully compatible with scikit-learn [@Pedregosa2011]. It
 has its own implementation of expectation maximization (EM), but it can also
 be initialized with a GMM from sklearn, which means that we can also initialize
-it from a Bayesian GMM of sklearn. The prediction process for regression is
-not available in sklearn and will be provided by gmr.
+it from a Bayesian GMM of scikit-learn. The prediction process for regression
+is not available in scikit-learn and will be provided by gmr.
 
 # Statement of Need
 
