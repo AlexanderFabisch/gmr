@@ -467,6 +467,28 @@ class GMM(object):
         return MVN(mean=mean, covariance=covariance,
                    verbose=self.verbose, random_state=self.random_state)
 
+    def extract_mvn(self, component_idx):
+        """Extract one of the Gaussians from the mixture.
+
+        Parameters
+        ----------
+        component_idx : int
+            Index of the component that should be extracted.
+
+        Returns
+        -------
+        mvn : MVN
+            The component_idx-th multivariate normal distribution of this GMM.
+        """
+        self._check_initialized()
+        if component_idx < 0 or component_idx >= self.n_components:
+            raise ValueError("Index of Gaussian must be in [%d, %d)"
+                             % (0, self.n_components))
+        return MVN(
+            mean=self.means[component_idx],
+            covariance=self.covariances[component_idx], verbose=self.verbose,
+            random_state=self.random_state)
+
 
 def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25, factors=np.linspace(0.25, 2.0, 8)):
     """Plot error ellipses of GMM components.
