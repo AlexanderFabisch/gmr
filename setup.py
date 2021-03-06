@@ -5,12 +5,12 @@
 
 from setuptools import setup
 import gmr
-VERSION = gmr.__version__
+
 
 def setup_package():
     setup(
         name="gmr",
-        version=VERSION,
+        version=gmr.__version__,
         author="Alexander Fabisch",
         author_email="afabisch@googlemail.com",
         url="https://github.com/AlexanderFabisch/gmr",
@@ -34,9 +34,14 @@ def setup_package():
             "Programming Language :: Python :: 3.5",
             "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
         ],
         packages=["gmr"],
-        requires=["numpy", "scipy"],
+        install_requires=["numpy", "scipy"],
+        extras_require={
+            "all": ["matplotlib", "scikit-learn", "svgpathtools"],
+            "test": ["nose", "coverage"]
+        }
     )
 
 
