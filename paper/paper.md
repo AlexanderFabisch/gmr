@@ -17,7 +17,7 @@ bibliography: paper.bib
 
 # Summary
 
-gmr is a Python library for Gausian mixture regression (GMR). GMR is a
+gmr is a Python library for Gaussian mixture regression (GMR). GMR is a
 regression approach that models probability distributions rather than
 functions. Hence, it is possible to model multimodal mappings.
 
