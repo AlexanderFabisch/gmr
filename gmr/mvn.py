@@ -5,7 +5,7 @@ from scipy.stats import chi2
 
 
 def invert_indices(n_features, indices):
-    inv = np.ones(n_features, dtype=np.bool)
+    inv = np.ones(n_features, dtype=bool)
     inv[indices] = False
     inv, = np.where(inv)
     return inv
@@ -313,7 +313,7 @@ class MVN(object):
         """
         D, B = np.linalg.eigh(C)
         # HACK: avoid numerical problems
-        D = np.maximum(D, np.finfo(np.float).eps)
+        D = np.maximum(D, np.finfo(float).eps)
         return B.dot(np.diag(np.sqrt(D))).dot(B.T)
 
     def sigma_points(self, alpha=1e-3, kappa=0.0):
