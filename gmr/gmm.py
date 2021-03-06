@@ -172,7 +172,7 @@ class GMM(object):
 
         if self.priors is None:
             self.priors = np.ones(self.n_components,
-                                  dtype=np.float) / self.n_components
+                                  dtype=float) / self.n_components
 
         if init_params not in ["random", "kmeans++"]:
             raise ValueError("'init_params' must be 'random' or 'kmeans++' "
