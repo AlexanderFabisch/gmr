@@ -120,7 +120,7 @@ valid predictions for one input $\boldsymbol{x}$.
 
 ![Multimodal regression.\label{fig:multimodal_regression}](multimodal_regression.png)
 
-On the left side of Figure \autoref{fig:multimodal_regression} you see the
+On the left side of \autoref{fig:multimodal_regression} you see the
 training data and the fitted GMM indicated by ellipses corresponding to its
 components. On the right side you see the predicted probability density
 $p(\boldsymbol{y}|\boldsymbol{x}=0.5)$. There are three peaks that correspond
@@ -138,7 +138,7 @@ $\boldsymbol{x}_{t+1} = \boldsymbol{x}_t + \Delta t \dot{\boldsymbol{x}}_t$.
 
 ![Imitation learning.\label{fig:imitation_learning}](imitation.png)
 
-In Figure \autoref{fig:imitation_learning} we can see that in the middle of
+In \autoref{fig:imitation_learning} we can see that in the middle of
 the eight we have multiple modes: one velocity vector would lead to the left
 and one to the right. Sampling from the conditional GMM is only one possible
 solution here. Another one would be to select the component that contributes
