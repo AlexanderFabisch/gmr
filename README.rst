@@ -24,8 +24,6 @@ gmr
 Documentation
 =============
 
-We have a full `API documentation <https://alexanderfabisch.github.io/gmr/>`_.
-
 Installation
 ------------
 
@@ -81,6 +79,9 @@ For more details, see:
 .. code-block:: python
 
     help(gmr)
+
+or have a look at the
+`API documentation <https://alexanderfabisch.github.io/gmr/>`_.
 
 
 How Does It Compare to scikit-learn?
@@ -158,6 +159,13 @@ used in the constructor of the GMM class to recreate the object and they can
 also be used in other libraries that provide a GMM implementation. The
 MVN class only needs the attributes `mean` and `covariance` to define the
 model.
+
+
+API Documentation
+-----------------
+
+API documentation is available
+`here <https://alexanderfabisch.github.io/gmr/>`_.
 
 
 Contributing
