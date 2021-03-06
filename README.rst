@@ -203,7 +203,7 @@ you can run
 
 .. code-block::
 
-    pdoc gmr --skip-errors > doc/apidoc.md
+    pdoc gmr --html --skip-errors
 
 
 Related Publications
