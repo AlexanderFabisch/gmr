@@ -14,13 +14,16 @@ gmr
 
 Source code repository: https://github.com/AlexanderFabisch/gmr
 
+License: `New BSD / BSD 3-clause <https://github.com/AlexanderFabisch/gmr/blob/master/LICENSE>`_
+
+Releases: https://github.com/AlexanderFabisch/gmr/releases
+
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/gmr.png
 
 `(Source code of example) <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_regression.py>`_
 
 Documentation
 =============
-
 
 Installation
 ------------
@@ -154,6 +157,42 @@ used in the constructor of the GMM class to recreate the object and they can
 also be used in other libraries that provide a GMM implementation. The
 MVN class only needs the attributes `mean` and `covariance` to define the
 model.
+
+
+Contributing
+============
+
+How can I contribute?
+---------------------
+
+If you discover bugs, have feature requests, or want to improve the
+documentation, you can open an issue at the
+`issue tracker <https://github.com/AlexanderFabisch/gmr/issues>`_
+of the project.
+
+If you want to contribute code, please open a pull request via
+GitHub by forking the project, committing changes to your fork,
+and then opening a
+`pull request <https://github.com/AlexanderFabisch/gmr/pulls>`_
+from your forked branch to the main branch of `gmr`.
+
+
+Development Environment
+-----------------------
+
+I would recommend to install `gmr` from source in editable mode with `pip` and
+install all dependencies:
+
+.. code-block::
+
+    pip install -e .[all,test]
+
+You can now run tests with
+
+    nosetests --with-coverage
+
+The option `--with-coverage` will print a coverage report and output an
+HTML overview to the folder `cover/`.
 
 
 Related Publications
