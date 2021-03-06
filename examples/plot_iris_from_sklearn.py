@@ -5,6 +5,9 @@ Initialize GMM from sklearn
 
 We will cluster the Iris dataset but we will use sklearn to initialize
 our GMM. sklearn allows restricted covariances such as diagonal covariances.
+This is just for demonstration purposes and does not represent an example
+of a particularly good fit. Take a look at `plot_iris.py` for a fit with
+full covariances.
 """
 print(__doc__)
 import numpy as np
