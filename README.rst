@@ -1,6 +1,8 @@
-===
+***
 gmr
-===
+***
+
+    Gaussian Mixture Models (GMMs) for clustering and regression in Python.
 
 .. image:: https://api.travis-ci.org/AlexanderFabisch/gmr.png?branch=master
    :target: https://travis-ci.org/AlexanderFabisch/gmr
@@ -10,14 +12,40 @@ gmr
    :target: https://zenodo.org/badge/latestdoi/17119390
    :alt: DOI (Zenodo)
 
-Gaussian Mixture Models (GMMs) for clustering and regression in Python.
-
 Source code repository: https://github.com/AlexanderFabisch/gmr
 
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/gmr.png
 
 `(Source code of example) <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_regression.py>`_
 
+Documentation
+=============
+
+
+Installation
+------------
+
+Install from `PyPI`_:
+
+.. code-block:: bash
+
+    pip install gmr
+
+If you want to be able to run all examples, pip can install all necessary
+examples with
+
+.. code-block::
+
+    pip install gmr[all]
+
+You can also install `gmr` from source:
+
+.. code-block:: bash
+
+    python setup.py install
+    # alternatively: pip install -e .
+
+.. _PyPi: https://pypi.python.org/pypi
 
 Example
 -------
@@ -38,24 +66,6 @@ For more details, see:
 .. code-block:: python
 
     help(gmr)
-
-
-Installation
-------------
-
-Install from `PyPI`_:
-
-.. code-block:: bash
-
-    pip install gmr
-
-or from source:
-
-.. code-block:: bash
-
-    python setup.py install
-
-.. _PyPi: https://pypi.python.org/pypi
 
 
 How Does It Compare to scikit-learn?
@@ -135,8 +145,8 @@ MVN class only needs the attributes `mean` and `covariance` to define the
 model.
 
 
-Publications
-------------
+Related Publications
+====================
 
 The first publication that presents the GMR algorithm is
 
