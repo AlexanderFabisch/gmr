@@ -12,18 +12,19 @@ gmr
    :target: https://zenodo.org/badge/latestdoi/17119390
    :alt: DOI (Zenodo)
 
-Source code repository: https://github.com/AlexanderFabisch/gmr
-
-License: `New BSD / BSD 3-clause <https://github.com/AlexanderFabisch/gmr/blob/master/LICENSE>`_
-
-Releases: https://github.com/AlexanderFabisch/gmr/releases
-
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/gmr.png
 
 `(Source code of example) <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_regression.py>`_
 
+* Source code repository: https://github.com/AlexanderFabisch/gmr
+* License: `New BSD / BSD 3-clause <https://github.com/AlexanderFabisch/gmr/blob/master/LICENSE>`_
+* Releases: https://github.com/AlexanderFabisch/gmr/releases
+* `API documentation <https://alexanderfabisch.github.io/gmr/>`_
+
 Documentation
 =============
+
+We have a full `API documentation <https://alexanderfabisch.github.io/gmr/>`_.
 
 Installation
 ------------
