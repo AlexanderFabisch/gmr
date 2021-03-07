@@ -56,6 +56,12 @@ Gaussian distributions:
 * unscented transform [@Uhlmann1995] to estimate the effect of a nonlinear
   function on a Gaussian distribution
 
+Multimodal regression and Gaussian mixture regression has been used mostly
+by the robotics community. For example, inverse problems such as inverse
+kinematics cannot be easily modeled with standard regression approaches.
+Furthermore, Gaussian mixture regression is the basis of many programming
+by demonstration approaches [@Billard2008].
+
 # Background
 
 Gaussian mixture regression via EM has been proposed first by @Ghahramani1994.
