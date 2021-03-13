@@ -127,7 +127,7 @@ Gallery
 
 `Sample time-invariant trajectories <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_time_invariant_trajectories.py>`_
 
-You can find all examples `here <https://github.com/AlexanderFabisch/gmr/tree/master/examples>`_.
+You can find `all examples here <https://github.com/AlexanderFabisch/gmr/tree/master/examples>`_.
 
 
 Saving a Model
@@ -210,7 +210,7 @@ The API documentation is generated with
 `pdoc3 <https://pdoc3.github.io/pdoc/>`_. If you want to regenerate it,
 you can run
 
-.. code-block::
+.. code-block:: bash
 
     pdoc gmr --html --skip-errors
 
