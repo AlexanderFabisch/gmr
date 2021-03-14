@@ -10,7 +10,7 @@ density function.
 The dataset that we use to illustrate multimodal regression by Gaussian
 mixture regression is from Section 5 of
 
-C. M. Bishop, "Mixture Density Networks," 1994,
+C. M. Bishop, "Mixture Density Networks", 1994,
 https://publications.aston.ac.uk/id/eprint/373/1/NCRG_94_004.pdf
 
 On the left side of the figure you see the training data and the fitted

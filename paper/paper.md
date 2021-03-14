@@ -129,7 +129,8 @@ $$p(\boldsymbol{y}|\boldsymbol{x}) =
 # Examples
 
 Here is an example of a dataset where multiple outputs $\boldsymbol{y}$ are
-valid predictions for one input $\boldsymbol{x}$.
+valid predictions for one input $\boldsymbol{x}$. It was introduced by
+@Bishop1994.
 
 ![Multimodal regression.\label{fig:multimodal_regression}](multimodal_regression.png)
 
