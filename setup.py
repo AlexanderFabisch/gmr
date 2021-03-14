@@ -4,6 +4,17 @@
 # License: BSD 3 clause
 
 from setuptools import setup
+
+try:
+    import builtins
+except ImportError:  # Python 2
+    import __builtin__ as builtins
+# Idea from scikit-learn:
+# We set a global variable so that the __init__ can detect if it is being
+# loaded by the setup routine, to avoid attempting to load components that
+# require additional dependencies that are not yet installed.
+builtins.__GMR_SETUP__ = True
+
 import gmr
 
 
