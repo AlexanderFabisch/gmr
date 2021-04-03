@@ -133,8 +133,13 @@ class MVN(object):
         n_dof = len(x) - 1
         return self.squared_mahalanobis_distance(x) <= chi2(n_dof).ppf(alpha)
 
-    def to_probability_density(self, X):
-        """Compute probability density.
+        return self.norm * np.exp(-0.5 * np.sum(X_normalized ** 2, axis=1))
+
+    def to_norm_factor_and_exponents(self, X):
+        """Compute normalization factor and exponents of Gaussian.
+
+        These values can be used to compute the probability density function
+        of this Gaussian: p(x) = norm_factor * np.exp(exponents).
 
         Parameters
         ----------
@@ -143,8 +148,12 @@ class MVN(object):
 
         Returns
         -------
-        p : array, shape (n_samples,)
-            Probability densities of data.
+        norm_factor : float
+            Normalization factor: constant term outside of exponential
+            function in probability density function of this Gaussian.
+
+        exponents : array, shape (n_samples,)
+            Exponents to compute probability density function.
         """
         self._check_initialized()
 
@@ -173,7 +182,25 @@ class MVN(object):
         X_normalized = sp.linalg.solve_triangular(
             L, X_minus_mean.T, lower=True).T
 
-        return self.norm * np.exp(-0.5 * np.sum(X_normalized ** 2, axis=1))
+        exponent = -0.5 * np.sum(X_normalized ** 2, axis=1)
+
+        return self.norm, exponent
+
+    def to_probability_density(self, X):
+        """Compute probability density.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Data.
+
+        Returns
+        -------
+        p : array, shape (n_samples,)
+            Probability densities of data.
+        """
+        norm_factor, exponents = self.to_norm_factor_and_exponents(X)
+        return norm_factor * np.exp(exponents)
 
     def marginalize(self, indices):
         """Marginalize over everything except the given indices.

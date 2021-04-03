@@ -379,18 +379,24 @@ class GMM(object):
         self._check_initialized()
 
         n_features = self.means.shape[1] - len(indices)
-        priors = np.empty(self.n_components)
         means = np.empty((self.n_components, n_features))
         covariances = np.empty((self.n_components, n_features, n_features))
+
+        prior_norm_factors = np.empty(self.n_components)
+        prior_exponents = np.empty(self.n_components)
+
         for k in range(self.n_components):
             mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
                       random_state=self.random_state)
             conditioned = mvn.condition(indices, x)
-            priors[k] = (self.priors[k] *
-                         mvn.marginalize(indices).to_probability_density(x))
+            marginal = mvn.marginalize(indices)
+            prior_norm_factors[k], prior_exponents[k] = \
+                marginal.to_norm_factor_and_exponents(x)
             means[k] = conditioned.mean
             covariances[k] = conditioned.covariance
-        priors /= priors.sum()
+        m = np.max(prior_exponents)
+        priors = self.priors * prior_norm_factors * np.exp(prior_exponents - m)
+        priors /= np.sum(priors)
         return GMM(n_components=self.n_components, priors=priors, means=means,
                    covariances=covariances, random_state=self.random_state)
 
