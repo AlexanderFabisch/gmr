@@ -23,7 +23,7 @@ if not __GMR_SETUP__:
     __all__ = ["gmm", "mvn", "utils"]
 
     from .mvn import MVN, plot_error_ellipse
-    from .gmm import (GMM, plot_error_ellipses, kmeansplusplus_initialization,
+    from .gmm import (GMM, GMMRegression, plot_error_ellipses, kmeansplusplus_initialization,
                       covariance_initialization)
 
     __all__.extend(["MVN", "plot_error_ellipse", "GMM", "plot_error_ellipses",
