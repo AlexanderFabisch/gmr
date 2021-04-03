@@ -132,7 +132,8 @@ class GMM(object):
         if self.covariances is None:
             raise ValueError("Covariances have not been initialized")
 
-    def from_samples(self, X, R_diff=1e-4, n_iter=100, init_params="random"):
+    def from_samples(self, X, R_diff=1e-4, n_iter=100, init_params="random",
+                     oracle_approximating_shrinkage=False):
         """MLE of the mean and covariance.
 
         Expectation-maximization is used to infer the model parameters. The
@@ -162,6 +163,10 @@ class GMM(object):
             set based on the average distances of samples in each dimensions.
             This is computationally more expensive but often gives much
             better results.
+
+        oracle_approximating_shrinkage : bool, optional (default: False)
+            Use Oracle Approximating Shrinkage (OAS) estimator for covariances
+            to ensure positive semi-definiteness.
 
         Returns
         -------
@@ -217,7 +222,34 @@ class GMM(object):
                 Xm = X - self.means[k]
                 self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
 
+            if oracle_approximating_shrinkage:
+                self.apply_oracle_approximating_shrinkage(n_samples)
+
         return self
+
+    def apply_oracle_approximating_shrinkage(self, n_samples):
+        """TODO"""
+        self._check_initialized()
+
+        n_features = self.means.shape[1]
+        for k in range(self.n_components):
+            emp_cov = self.covariances[k]
+            # Chen et al., “Shrinkage Algorithms for MMSE Covariance Estimation”,
+            # IEEE Trans. on Sign. Proc., Volume 58, Issue 10, October 2010.
+            # Implementation from sklearn:
+            # https://scikit-learn.org/stable/modules/generated/oas-function.html#sklearn.covariance.oas
+            mu = np.trace(emp_cov) / n_features
+
+            # formula from Chen et al.'s **implementation**
+            alpha = np.mean(emp_cov ** 2)
+            num = alpha + mu ** 2
+            den = (n_samples + 1.) * (alpha - (mu ** 2) / n_features)
+
+            shrinkage = 1. if den == 0 else min(num / den, 1.)
+            shrunk_cov = (1. - shrinkage) * emp_cov
+            shrunk_cov.flat[::n_features + 1] += shrinkage * mu
+
+            self.covariances[k] = shrunk_cov
 
     def sample(self, n_samples):
         """Sample from Gaussian mixture distribution.

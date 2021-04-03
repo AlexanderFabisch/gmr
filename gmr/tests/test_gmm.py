@@ -575,6 +575,7 @@ def test_condition_numerical_issue():
     x = np.array([1.0959e-01, 0.0000e+00, 1.1930e+01, 0.0000e+00, 5.7300e-01,
                   6.7940e+00, 8.9300e+01, 2.3889e+00, 1.0000e+00, 2.7300e+02,
                   2.1000e+01, 3.9345e+02, 6.4800e+00])
+    gmm.apply_oracle_approximating_shrinkage(n_samples=506)
     cond_gmm = gmm.condition(np.arange(len(x)), x)
     assert_true(all(np.isfinite(cond_gmm.priors)))
     assert_true(all(np.linalg.eigvals(cond_gmm.covariances[0] >= 0)))
