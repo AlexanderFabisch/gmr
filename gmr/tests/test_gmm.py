@@ -11,7 +11,7 @@ try:
 except ImportError:
     # Python 3
     from io import StringIO
-from gmr import GMM, MVN, plot_error_ellipses, kmeansplusplus_initialization, covariance_initialization
+from gmr import GMM, MVN, GMMRegression, plot_error_ellipses, kmeansplusplus_initialization, covariance_initialization
 from test_mvn import AxisStub
 
 
@@ -251,6 +251,22 @@ def test_regression_with_2d_input():
     pred = gmm.predict(np.array([0, 1]), np.hstack((x, x[::-1])))
     mse = np.sum((y - pred) ** 2) / n_samples
 
+    random_state = check_random_state(0)
+
+    n_samples = 200
+    x = np.linspace(0, 2, n_samples)[:, np.newaxis]
+    y1 = 3 * x[:n_samples // 2] + 1
+    y2 = -3 * x[n_samples // 2:] + 7
+    noise = random_state.randn(n_samples, 1) * 0.01
+    y = np.vstack((y1, y2)) + noise
+    samples = np.hstack((x, x[::-1], y))
+
+    gmm = GMMRegression(n_components=2, random_state=random_state)
+    gmm.fit(np.hstack((x, x[::-1])), y)
+
+    pred = gmm.predict(np.hstack((x, x[::-1])))
+    mse = np.sum((y - pred) ** 2) / n_samples
+
 
 def test_regression_without_noise():
     """Test regression without noise."""
@@ -273,6 +289,17 @@ def test_regression_without_noise():
     mse = np.sum((y - pred) ** 2) / n_samples
     assert_less(mse, 0.01)
 
+    random_state = check_random_state(0)
+
+    gmm = GMMRegression(n_components=2, random_state=random_state)
+    gmm.fit(x, y)
+    assert_array_almost_equal(gmm.gmm.priors, 0.5 * np.ones(2), decimal=2)
+    assert_array_almost_equal(gmm.gmm.means[0], np.array([1.5, 2.5]), decimal=2)
+    assert_array_almost_equal(gmm.gmm.means[1], np.array([0.5, 2.5]), decimal=1)
+
+    pred = gmm.predict(x)
+    mse = np.sum((y - pred) ** 2) / n_samples
+    assert_less(mse, 0.01)
 
 def test_plot():
     """Test plot of GMM."""
