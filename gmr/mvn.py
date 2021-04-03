@@ -133,8 +133,6 @@ class MVN(object):
         n_dof = len(x) - 1
         return self.squared_mahalanobis_distance(x) <= chi2(n_dof).ppf(alpha)
 
-        return self.norm * np.exp(-0.5 * np.sum(X_normalized ** 2, axis=1))
-
     def to_norm_factor_and_exponents(self, X):
         """Compute normalization factor and exponents of Gaussian.
 
