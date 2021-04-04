@@ -228,19 +228,34 @@ class GMM(object):
         return self
 
     def apply_oracle_approximating_shrinkage(self, n_samples):
-        """TODO"""
+        """Apply Oracle Approximating Shrinkage to covariances.
+
+        Empirical covariances might have negative eigenvalues caused by
+        numerical issues so that they are not positive semi-definite and
+        are not invertible. In these cases it is better to apply this
+        function after training. You can also apply it after each
+        EM step with a flag of `GMM.from_samples`.
+
+        This is an implementation of
+
+        Chen et al., “Shrinkage Algorithms for MMSE Covariance Estimation”,
+        IEEE Trans. on Sign. Proc., Volume 58, Issue 10, October 2010.
+
+        based on the implementation of scikit-learn:
+
+        https://scikit-learn.org/stable/modules/generated/oas-function.html#sklearn.covariance.oas
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples from which the covariances have been estimated.
+        """
         self._check_initialized()
 
         n_features = self.means.shape[1]
         for k in range(self.n_components):
             emp_cov = self.covariances[k]
-            # Chen et al., “Shrinkage Algorithms for MMSE Covariance Estimation”,
-            # IEEE Trans. on Sign. Proc., Volume 58, Issue 10, October 2010.
-            # Implementation from sklearn:
-            # https://scikit-learn.org/stable/modules/generated/oas-function.html#sklearn.covariance.oas
             mu = np.trace(emp_cov) / n_features
-
-            # formula from Chen et al.'s **implementation**
             alpha = np.mean(emp_cov ** 2)
             num = alpha + mu ** 2
             den = (n_samples + 1.) * (alpha - (mu ** 2) / n_features)
