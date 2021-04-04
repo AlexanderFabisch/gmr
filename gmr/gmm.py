@@ -444,14 +444,27 @@ class GMM(object):
             mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
                       random_state=self.random_state)
             conditioned = mvn.condition(indices, x)
-            marginal = mvn.marginalize(indices)
-            prior_norm_factors[k], prior_exponents[k] = \
-                marginal.to_norm_factor_and_exponents(x)
             means[k] = conditioned.mean
             covariances[k] = conditioned.covariance
+
+            prior_norm_factors[k], prior_exponents[k] = \
+                mvn.marginalize(indices).to_norm_factor_and_exponents(x)
+
+        # Instead of using the probability densities of the marginal
+        # distributions p_k(X=x) directly to compute the priors with
+        # pi_k = p_k(X=x) / sum_l p_l(X=x), we implement this in a
+        # numerically more stable version.
+        # For Gaussians, pi_k expands to
+        # pi_k = c_k * exp(exponent_k) / sum_l c_l * exp(exponent_l).
+        # This results in division by 0 for small exponents.
+        # However, the following expression is mathematically equal for
+        # any constant m:
+        # pi_k = c_k * exp(exponent_k - m) / sum_l c_l * exp(exponent_l - m)
+        # We set m = max_l exponents_l to avoid division by 0.
         m = np.max(prior_exponents)
         priors = self.priors * prior_norm_factors * np.exp(prior_exponents - m)
         priors /= np.sum(priors)
+
         return GMM(n_components=self.n_components, priors=priors, means=means,
                    covariances=covariances, random_state=self.random_state)
 
