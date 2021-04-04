@@ -575,9 +575,28 @@ def test_condition_numerical_issue():
     x = np.array([1.0959e-01, 0.0000e+00, 1.1930e+01, 0.0000e+00, 5.7300e-01,
                   6.7940e+00, 8.9300e+01, 2.3889e+00, 1.0000e+00, 2.7300e+02,
                   2.1000e+01, 3.9345e+02, 6.4800e+00])
-    gmm.apply_oracle_approximating_shrinkage(n_samples=506)
+    gmm.apply_oracle_approximating_shrinkage(n_samples_eff=506)
     cond_gmm = gmm.condition(np.arange(len(x)), x)
     assert_true(all(np.isfinite(cond_gmm.priors)))
     assert_true(all(np.linalg.eigvals(cond_gmm.covariances[0] >= 0)))
     assert_true(all(np.linalg.eigvals(cond_gmm.covariances[1] >= 0)))
 
+
+def test_from_samples_with_oas():
+    n_samples = 9
+    n_features = 2
+    X = np.ndarray((n_samples, n_features))
+    X[:n_samples // 3, :] = random_state.multivariate_normal(
+        [0.0, 1.0], [[0.5, -1.0], [-1.0, 5.0]], size=(n_samples // 3,))
+    X[n_samples // 3:-n_samples // 3, :] = random_state.multivariate_normal(
+        [-2.0, -2.0], [[3.0, 1.0], [1.0, 1.0]], size=(n_samples // 3,))
+    X[-n_samples // 3:, :] = random_state.multivariate_normal(
+        [3.0, 3.0], [[3.0, -1.0], [-1.0, 1.0]], size=(n_samples // 3,))
+
+    gmm = GMM(n_components=3, random_state=random_state)
+    gmm.from_samples(
+        X, init_params="kmeans++", oracle_approximating_shrinkage=True)
+    cond = gmm.condition(np.array([0]), np.array([1.0]))
+    for i in range(cond.n_components):
+        eigvals = np.linalg.eigvals(cond.covariances[i])
+        assert_true(all(eigvals >= 0))

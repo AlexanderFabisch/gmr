@@ -223,11 +223,13 @@ class GMM(object):
                 self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
 
             if oracle_approximating_shrinkage:
-                self.apply_oracle_approximating_shrinkage(n_samples)
+                n_samples_eff = (np.sum(R_n, axis=0) ** 2 /
+                                 np.sum(R_n ** 2, axis=0))
+                self.apply_oracle_approximating_shrinkage(n_samples_eff)
 
         return self
 
-    def apply_oracle_approximating_shrinkage(self, n_samples):
+    def apply_oracle_approximating_shrinkage(self, n_samples_eff):
         """Apply Oracle Approximating Shrinkage to covariances.
 
         Empirical covariances might have negative eigenvalues caused by
@@ -247,10 +249,16 @@ class GMM(object):
 
         Parameters
         ----------
-        n_samples : int
-            Number of samples from which the covariances have been estimated.
+        n_samples_eff : float or array-like, shape (n_components,)
+            Number of effective samples from which the covariances have been
+            estimated. A rough estimate would be the size of the dataset.
+            Covariances are computed from a weighted dataset in EM. In this
+            case we can compute the number of effective samples by
+            `np.sum(weights, axis=0) ** 2 / np.sum(weights ** 2, axis=0)`
+            from an array weights of shape (n_samples, n_components).
         """
         self._check_initialized()
+        n_samples_eff = np.ones(self.n_components) * np.asarray(n_samples_eff)
 
         n_features = self.means.shape[1]
         for k in range(self.n_components):
@@ -258,7 +266,7 @@ class GMM(object):
             mu = np.trace(emp_cov) / n_features
             alpha = np.mean(emp_cov ** 2)
             num = alpha + mu ** 2
-            den = (n_samples + 1.) * (alpha - (mu ** 2) / n_features)
+            den = (n_samples_eff[k] + 1.) * (alpha - (mu ** 2) / n_features)
 
             shrinkage = 1. if den == 0 else min(num / den, 1.)
             shrunk_cov = (1. - shrinkage) * emp_cov
