@@ -563,6 +563,7 @@ class GMM(object):
             covariance=self.covariances[component_idx], verbose=self.verbose,
             random_state=self.random_state)
 
+
 def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25, factors=np.linspace(0.25, 2.0, 8)):
     """Plot error ellipses of GMM components.
 
