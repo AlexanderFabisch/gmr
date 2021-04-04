@@ -20,19 +20,11 @@ except NameError:
 if not __GMR_SETUP__:
     from . import gmm, mvn, utils
 
-    import warnings
-
-    __all__ = ["gmm", "mvn", "utils"]
+    __all__ = ["gmm", "mvn", "utils", "sklearn"]
 
     from .mvn import MVN, plot_error_ellipse
     from .gmm import (GMM, plot_error_ellipses, kmeansplusplus_initialization,
                       covariance_initialization)
-
-    try:
-        from .sklearn import GMMRegression
-    except ImportError:
-        class GMMRegression:
-            warnings.warn("Scikit-learn is required to use GMMRegression.")
 
     __all__.extend(["MVN", "plot_error_ellipse", "GMM", "plot_error_ellipses",
                     "kmeansplusplus_initialization", "covariance_initialization"])
