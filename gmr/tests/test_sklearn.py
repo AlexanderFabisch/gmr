@@ -1,13 +1,17 @@
 import numpy as np
-from nose.tools import assert_less, assert_greater
 from numpy.testing import assert_array_almost_equal
 from gmr.utils import check_random_state
-
-from gmr.sklearn import GaussianMixtureRegressor
+from nose.tools import assert_less, assert_greater
+from nose.plugins.skip import SkipTest
 
 
 def test_sklearn_regression():
     """Test regression with GaussianMixtureRegressor."""
+    try:
+        from gmr.sklearn import GaussianMixtureRegressor
+    except ImportError:
+        raise SkipTest("sklearn is not available")
+
     random_state = check_random_state(0)
 
     n_samples = 200
@@ -30,6 +34,11 @@ def test_sklearn_regression():
 
 def test_sklearn_regression_with_2d_input():
     """Test regression with GaussianMixtureRegressor and two-dimensional input."""
+    try:
+        from gmr.sklearn import GaussianMixtureRegressor
+    except ImportError:
+        raise SkipTest("sklearn is not available")
+
     random_state = check_random_state(0)
 
     n_samples = 200
@@ -49,6 +58,11 @@ def test_sklearn_regression_with_2d_input():
 
 def test_sklearn_regression_with_1d_output():
     """Test regression with GaussianMixtureRegressor and two-dimensional input."""
+    try:
+        from gmr.sklearn import GaussianMixtureRegressor
+    except ImportError:
+        raise SkipTest("sklearn is not available")
+
     random_state = check_random_state(0)
 
     n_samples = 200
@@ -66,6 +80,11 @@ def test_sklearn_regression_with_1d_output():
 
 def test_sklearn_regression_without_noise():
     """Test regression without noise."""
+    try:
+        from gmr.sklearn import GaussianMixtureRegressor
+    except ImportError:
+        raise SkipTest("sklearn is not available")
+
     random_state = 0
 
     n_samples = 200
