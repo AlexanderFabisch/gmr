@@ -47,6 +47,22 @@ def test_sklearn_regression_with_2d_input():
     assert_less(mse, 0.01)
 
 
+def test_sklearn_regression_with_1d_output():
+    """Test regression with GaussianMixtureRegressor and two-dimensional input."""
+    random_state = check_random_state(0)
+
+    n_samples = 200
+    x = np.linspace(0, 2, n_samples)[:, np.newaxis]
+    y = 3 * x + 1
+    y = y.flatten()
+
+    gmr = GaussianMixtureRegressor(n_components=1, random_state=random_state)
+    gmr.fit(x, y)
+
+    pred = gmr.predict(x)
+    mse = np.sum((y - pred) ** 2) / n_samples
+
+
 def test_sklearn_regression_without_noise():
     """Test regression without noise."""
     random_state = 0
