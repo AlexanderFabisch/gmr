@@ -253,8 +253,6 @@ def test_regression_with_2d_input():
     pred = gmm.predict(np.array([0, 1]), np.hstack((x, x[::-1])))
     mse = np.sum((y - pred) ** 2) / n_samples
 
-    random_state = check_random_state(0)
-
     n_samples = 200
     x = np.linspace(0, 2, n_samples)[:, np.newaxis]
     y1 = 3 * x[:n_samples // 2] + 1

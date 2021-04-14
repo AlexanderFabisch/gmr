@@ -66,13 +66,11 @@ class GaussianMixtureRegressor(MultiOutputMixin, RegressorMixin, BaseEstimator):
         self.n_iter = n_iter
         self.init_params = init_params
 
+    def fit(self, X, y):
         self.gmm_ = GMM(self.n_components, priors=self.priors, means=self.means,
                         covariances=self.covariances, verbose=self.verbose, random_state=self.random_state)
 
-    def fit(self, X, y):
         X, y = check_X_y(X, y, estimator=self.gmm_, dtype=FLOAT_DTYPES, multi_output=True)
-        if X.ndim == 1:
-            X = np.expand_dims(X, 1)
         if y.ndim == 1:
             y = np.expand_dims(y, 1)
 
@@ -85,10 +83,5 @@ class GaussianMixtureRegressor(MultiOutputMixin, RegressorMixin, BaseEstimator):
     def predict(self, X):
         check_is_fitted(self, ["gmm_", "indices_"])
         X = check_array(X, estimator=self.gmm_, dtype=FLOAT_DTYPES)
-
-        if X.ndim > 2:
-            raise ValueError("y must have at most two dimensions.")
-        elif X.ndim == 1:
-            X = np.expand_dims(X, 1)
 
         return self.gmm_.predict(self.indices_, X)
