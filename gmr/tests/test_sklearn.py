@@ -1,5 +1,5 @@
 import numpy as np
-from nose.tools import assert_less
+from nose.tools import assert_less, assert_greater
 from numpy.testing import assert_array_almost_equal
 from gmr.utils import check_random_state
 
@@ -61,6 +61,7 @@ def test_sklearn_regression_with_1d_output():
 
     pred = gmr.predict(x)
     mse = np.sum((y - pred) ** 2) / n_samples
+    assert_greater(mse, 0.01)
 
 
 def test_sklearn_regression_without_noise():
