@@ -103,6 +103,9 @@ It is possible to initialize GMR from sklearn though:
         n_components=3, priors=gmm_sklearn.weights_, means=gmm_sklearn.means_,
         covariances=np.array([np.diag(c) for c in gmm_sklearn.covariances_]))
 
+For model selection with sklearn we furthermore provide an optional
+regressor interface.
+
 
 Gallery
 -------
