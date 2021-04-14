@@ -4,7 +4,7 @@ branches:
     - master
     - /\d+\.\d+\..+/
 install:
-  - pip install numpy scipy matplotlib
+  - pip install numpy scipy matplotlib scikit-learn
 script: nosetests gmr
 notifications:
   recipients:
