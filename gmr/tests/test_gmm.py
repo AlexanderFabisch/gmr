@@ -352,7 +352,7 @@ def test_float_precision_error():
     gmm.from_samples(X)
 
 
-def test_kmeanspp_initialization():
+def test_numerically_robust_responsibilities():
     random_state = check_random_state(0)
 
     n_samples = 300
@@ -368,6 +368,30 @@ def test_kmeanspp_initialization():
     X[-n_samples // 3:, :] = random_state.multivariate_normal(
         mean2, [[3.0, -1.0], [-1.0, 1.0]], size=(n_samples // 3,))
 
+    # artificial scaling, makes naive implementation fail
+    X[:, 1] *= 10000.0
+
+    gmm = GMM(n_components=3, random_state=random_state)
+    gmm.from_samples(X, init_params="random")
+    mean_dists = pdist(gmm.means)
+    assert_true(all(mean_dists > 1))
+    assert_true(all(1e7 < gmm.covariances[:, 1, 1]))
+    assert_true(all(gmm.covariances[:, 1, 1] < 1e9))
+
+
+def test_kmeanspp_initialization():
+    random_state = check_random_state(1)
+
+    n_samples = 300
+    n_features = 2
+    X = np.ndarray((n_samples, n_features))
+    X[:n_samples // 3, :] = random_state.multivariate_normal(
+        [0.0, 1.0], [[0.5, -1.0], [-1.0, 5.0]], size=(n_samples // 3,))
+    X[n_samples // 3:-n_samples // 3, :] = random_state.multivariate_normal(
+        [-2.0, -2.0], [[3.0, 1.0], [1.0, 1.0]], size=(n_samples // 3,))
+    X[-n_samples // 3:, :] = random_state.multivariate_normal(
+        [3.0, 1.0], [[3.0, -1.0], [-1.0, 1.0]], size=(n_samples // 3,))
+
     # artificial scaling, makes standard implementation fail
     # either the initial covariances have to be adjusted or we have
     # to normalize the dataset
@@ -375,20 +399,20 @@ def test_kmeanspp_initialization():
 
     gmm = GMM(n_components=3, random_state=random_state)
     gmm.from_samples(X, init_params="random")
-    # random initialization fails
-    assert_less(gmm.covariances[0, 0, 0], np.finfo(float).eps)
-    assert_less(gmm.covariances[1, 0, 0], np.finfo(float).eps)
-    assert_less(gmm.covariances[2, 0, 0], np.finfo(float).eps)
-    assert_less(gmm.covariances[0, 1, 1], np.finfo(float).eps)
-    assert_less(gmm.covariances[1, 1, 1], np.finfo(float).eps)
-    assert_less(gmm.covariances[2, 1, 1], np.finfo(float).eps)
+    ellipses = gmm.to_ellipses()
+    widths = np.array(
+        [ellipsis_params[1] for _, ellipsis_params in ellipses])[:, np.newaxis]
+    average_widths_random = np.mean(pdist(widths))
 
     gmm = GMM(n_components=3, random_state=random_state)
     gmm.from_samples(X, init_params="kmeans++")
-    mean_dists = pdist(gmm.means)
-    assert_true(all(mean_dists > 1))
-    assert_true(all(1e7 < gmm.covariances[:, 1, 1]))
-    assert_true(all(gmm.covariances[:, 1, 1] < 1e9))
+    ellipses = gmm.to_ellipses()
+    widths = np.array(
+        [ellipsis_params[1] for _, ellipsis_params in ellipses])[:, np.newaxis]
+    average_widths_kmeanspp = np.mean(pdist(widths))
+
+    # random initialization produces uneven covariance scaling
+    assert_less(average_widths_kmeanspp, average_widths_random)
 
 
 def test_unknown_initialization():
