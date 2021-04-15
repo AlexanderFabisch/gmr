@@ -8,6 +8,9 @@ solution. The result depends on the initialization. It is particularly
 important to either normalize the training data or set the covariances
 accordingly. In addition, k-means++ initialization helps to find a good
 initial distribution of means.
+
+Here is a numerically challenging example in which we find a better
+distribution of individual Gaussians with k-means++.
 """
 print(__doc__)
 

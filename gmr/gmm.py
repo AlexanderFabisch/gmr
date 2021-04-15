@@ -385,14 +385,31 @@ class GMM(object):
         self._check_initialized()
 
         n_samples = X.shape[0]
-        R = np.empty((n_samples, self.n_components))
+
+        # Instead of using the probability densities of the component's
+        # distributions p_k(X) directly to compute the responsibility of
+        # one sample with r_k = pi_k p_k(X) / sum_l pi_k p_l(X), we implement
+        # this in a numerically more stable version.
+        # For Gaussians, r_k expands to
+        # r_k = c_k * exp(exponent_k) / sum_l c_l * exp(exponent_l).
+        # This results in division by 0 for small exponents.
+        # However, the following expression is mathematically equal for
+        # any constant m:
+        # r_k = c_k * exp(exponent_k - m) / sum_l c_l * exp(exponent_l - m)
+        # We set m = max_l exponents_l to avoid division by 0.
+
+        norm_factors = np.empty(self.n_components)
+        exponents = np.empty((n_samples, self.n_components))
+
         for k in range(self.n_components):
-            R[:, k] = self.priors[k] * MVN(
+            norm_factors[k], exponents[:, k] = MVN(
                 mean=self.means[k], covariance=self.covariances[k],
-                random_state=self.random_state).to_probability_density(X)
-        R_norm = R.sum(axis=1)[:, np.newaxis]
-        R_norm[np.where(R_norm == 0.0)] = 1.0
-        R /= R_norm
+                random_state=self.random_state).to_norm_factor_and_exponents(X)
+
+        m = np.max(exponents, axis=1)[:, np.newaxis]
+        R = (self.priors[np.newaxis] * norm_factors[np.newaxis] *
+             np.exp(exponents - m))
+        R /= np.sum(R, axis=1)[:, np.newaxis]
         return R
 
     def to_probability_density(self, X):
