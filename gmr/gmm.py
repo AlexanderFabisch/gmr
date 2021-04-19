@@ -533,25 +533,20 @@ class GMM(object):
             prior_norm_factors[k], prior_exponents[:, k] = \
                 mvn.marginalize(indices).to_norm_factor_and_exponents(X)
 
-        # posterior_means = mean_y + sigma_xx^-1 . sigma_xy . (x - mean_x)
+        # posterior_means = mean_y + cov_xx^-1 * cov_xy * (x - mean_x)
         posterior_means = (
-                self.means[:, output_indices][:, :, np.newaxis] +
-                np.einsum("ijk,lik->ijl", regression_coeffs,
-                          (X[:, np.newaxis] - self.means[:, indices])))
-        #print(self.n_components)
-        #print(len(indices))
-        #print(len(output_indices))
-        #print(len(X))
-        #print(posterior_means.shape)
+                self.means[:, output_indices][:, :, np.newaxis].T +
+                np.einsum(
+                    "ijk,lik->lji",
+                    regression_coeffs,
+                    X[:, np.newaxis] - self.means[:, indices]))
 
         m = np.max(prior_exponents, axis=1)[:, np.newaxis]
         priors = (self.priors[np.newaxis] * prior_norm_factors[np.newaxis] *
                   np.exp(prior_exponents - m))
         priors /= np.sum(priors, axis=1)[:, np.newaxis]
-        priors = priors.T.reshape(self.n_components, 1, n_samples)
-        Y = np.sum(priors * posterior_means, axis=0).T
-        #print(Y.shape)
-        return Y
+        priors = priors.reshape(n_samples, 1, self.n_components)
+        return np.sum(priors * posterior_means, axis=-1)
 
     def to_ellipses(self, factor=1.0):
         """Compute error ellipses.
