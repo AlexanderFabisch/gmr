@@ -467,20 +467,8 @@ class GMM(object):
             prior_norm_factors[k], prior_exponents[k] = \
                 mvn.marginalize(indices).to_norm_factor_and_exponents(x)
 
-        # Instead of using the probability densities of the marginal
-        # distributions p_k(X=x) directly to compute the priors with
-        # pi_k = p_k(X=x) / sum_l p_l(X=x), we implement this in a
-        # numerically more stable version.
-        # For Gaussians, pi_k expands to
-        # pi_k = c_k * exp(exponent_k) / sum_l c_l * exp(exponent_l).
-        # This results in division by 0 for small exponents.
-        # However, the following expression is mathematically equal for
-        # any constant m:
-        # pi_k = c_k * exp(exponent_k - m) / sum_l c_l * exp(exponent_l - m)
-        # We set m = max_l exponents_l to avoid division by 0.
-        m = np.max(prior_exponents)
-        priors = self.priors * prior_norm_factors * np.exp(prior_exponents - m)
-        priors /= np.sum(priors)
+        priors = _safe_probability_density(
+            self.priors * prior_norm_factors, prior_exponents[np.newaxis])[0]
 
         return GMM(n_components=self.n_components, priors=priors, means=means,
                    covariances=covariances, random_state=self.random_state)
@@ -503,22 +491,10 @@ class GMM(object):
         Y : array, shape (n_samples, n_features_2)
             Predicted means of missing values.
         """
-        """
-        self._check_initialized()
-
-        n_samples, n_features_1 = X.shape
-        n_features_2 = self.means.shape[1] - n_features_1
-        Y = np.empty((n_samples, n_features_2))
-        for n in range(n_samples):
-            conditioned = self.condition(indices, X[n])
-            Y[n] = conditioned.priors.dot(conditioned.means)
-        return Y
-        #"""
         self._check_initialized()
 
         n_samples = len(X)
-        n_all_features = self.means.shape[1]
-        output_indices = invert_indices(n_all_features, indices)
+        output_indices = invert_indices(self.means.shape[1], indices)
         regression_coeffs = np.empty((
             self.n_components, len(output_indices), len(indices)))
 
@@ -541,10 +517,9 @@ class GMM(object):
                     regression_coeffs,
                     X[:, np.newaxis] - self.means[:, indices]))
 
-        m = np.max(prior_exponents, axis=1)[:, np.newaxis]
-        priors = (self.priors[np.newaxis] * prior_norm_factors[np.newaxis] *
-                  np.exp(prior_exponents - m))
-        priors /= np.sum(priors, axis=1)[:, np.newaxis]
+        priors = _safe_probability_density(
+            self.priors * prior_norm_factors,
+            prior_exponents)
         priors = priors.reshape(n_samples, 1, self.n_components)
         return np.sum(priors * posterior_means, axis=-1)
 
@@ -648,3 +623,37 @@ def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25, factors=np.linspace(0.
             if colors is not None:
                 ell.set_color(next(colors))
             ax.add_artist(ell)
+
+
+def _safe_probability_density(norm_factors, exponents):
+    """Compute numerically safe probability densities of a GMM.
+
+    The probability density of individual Gaussians in a GMM can be computed
+    from a formula of the form
+    q_k(X=x) = p_k(X=x) / sum_l p_l(X=x)
+    where p_k(X=x) = c_k * exp(exponent_k) so that
+    q_k(X=x) = c_k * exp(exponent_k) / sum_l c_l * exp(exponent_l)
+    Instead of using computing this directly, we implement it in a numerically
+    more stable version that works better for very small or large exponents
+    that would otherwise lead to NaN or division by 0.
+    The following expression is mathematically equal for any constant m:
+    q_k(X=x) = c_k * exp(exponent_k - m) / sum_l c_l * exp(exponent_l - m),
+    where we set m = max_l exponents_l.
+
+    Parameters
+    ----------
+    norm_factors : array, shape (n_components,)
+        Normalization factors of individual Gaussians
+
+    exponents : array, shape (n_samples, n_components)
+        Exponents of each combination of Gaussian and sample
+
+    Returns
+    -------
+    p : array, shape (n_samples, n_components)
+        Probability density of each sample
+    """
+    m = np.max(exponents, axis=1)[:, np.newaxis]
+    p = norm_factors[np.newaxis] * np.exp(exponents - m)
+    p /= np.sum(p, axis=1)[:, np.newaxis]
+    return p
