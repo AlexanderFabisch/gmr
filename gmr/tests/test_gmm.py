@@ -241,10 +241,9 @@ def test_regression_with_2d_input():
 
     n_samples = 200
     x = np.linspace(0, 2, n_samples)[:, np.newaxis]
-    y1 = 3 * x[:n_samples // 2] + 1
-    y2 = -3 * x[n_samples // 2:] + 7
+    y = 3 * x
     noise = random_state.randn(n_samples, 1) * 0.01
-    y = np.vstack((y1, y2)) + noise
+    y += noise
     samples = np.hstack((x, x[::-1], y))
 
     gmm = GMM(n_components=2, random_state=random_state)
@@ -252,6 +251,12 @@ def test_regression_with_2d_input():
 
     pred = gmm.predict(np.array([0, 1]), np.hstack((x, x[::-1])))
     mse = np.sum((y - pred) ** 2) / n_samples
+    assert_less(mse, 0.01)
+
+
+def test_regression_with_2d_output():
+    """Test regression with GMM and two-dimensional output."""
+    random_state = check_random_state(0)
 
     n_samples = 200
     x = np.linspace(0, 2, n_samples)[:, np.newaxis]
@@ -259,7 +264,15 @@ def test_regression_with_2d_input():
     y2 = -3 * x[n_samples // 2:] + 7
     noise = random_state.randn(n_samples, 1) * 0.01
     y = np.vstack((y1, y2)) + noise
-    samples = np.hstack((x, x[::-1], y))
+    Y = np.hstack((y, y[::-1]))
+    samples = np.hstack((x, Y))
+
+    gmm = GMM(n_components=3, random_state=random_state)
+    gmm.from_samples(samples)
+
+    pred = gmm.predict(np.array([0]), x)
+    mse = np.sum((Y - pred) ** 2) / n_samples
+    assert_less(mse, 0.01)
 
 
 def test_regression_without_noise():
