@@ -2,7 +2,7 @@ import numpy as np
 from scipy.spatial.distance import cdist, pdist
 from scipy.stats import chi2
 from .utils import check_random_state
-from .mvn import MVN
+from .mvn import MVN, invert_indices, regression_coefficients
 
 
 def kmeansplusplus_initialization(X, n_components, random_state=None):
@@ -503,6 +503,7 @@ class GMM(object):
         Y : array, shape (n_samples, n_features_2)
             Predicted means of missing values.
         """
+        """
         self._check_initialized()
 
         n_samples, n_features_1 = X.shape
@@ -511,6 +512,45 @@ class GMM(object):
         for n in range(n_samples):
             conditioned = self.condition(indices, X[n])
             Y[n] = conditioned.priors.dot(conditioned.means)
+        return Y
+        #"""
+        self._check_initialized()
+
+        n_samples = len(X)
+        n_all_features = self.means.shape[1]
+        output_indices = invert_indices(n_all_features, indices)
+        regression_coeffs = np.empty((
+            self.n_components, len(output_indices), len(indices)))
+
+        prior_norm_factors = np.empty(self.n_components)
+        prior_exponents = np.empty((n_samples, self.n_components))
+
+        for k in range(self.n_components):
+            regression_coeffs[k] = regression_coefficients(
+                self.covariances[k], output_indices, indices)
+            mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
+                      random_state=self.random_state)
+            prior_norm_factors[k], prior_exponents[:, k] = \
+                mvn.marginalize(indices).to_norm_factor_and_exponents(X)
+
+        # posterior_means = mean_y + sigma_xx^-1 . sigma_xy . (x - mean_x)
+        posterior_means = (
+                self.means[:, output_indices][:, :, np.newaxis] +
+                np.einsum("ijk,lik->ijl", regression_coeffs,
+                          (X[:, np.newaxis] - self.means[:, indices])))
+        #print(self.n_components)
+        #print(len(indices))
+        #print(len(output_indices))
+        #print(len(X))
+        #print(posterior_means.shape)
+
+        m = np.max(prior_exponents, axis=1)[:, np.newaxis]
+        priors = (self.priors[np.newaxis] * prior_norm_factors[np.newaxis] *
+                  np.exp(prior_exponents - m))
+        priors /= np.sum(priors, axis=1)[:, np.newaxis]
+        priors = priors.T.reshape(self.n_components, 1, n_samples)
+        Y = np.sum(priors * posterior_means, axis=0).T
+        #print(Y.shape)
         return Y
 
     def to_ellipses(self, factor=1.0):
