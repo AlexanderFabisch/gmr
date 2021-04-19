@@ -386,18 +386,6 @@ class GMM(object):
 
         n_samples = X.shape[0]
 
-        # Instead of using the probability densities of the component's
-        # distributions p_k(X) directly to compute the responsibility of
-        # one sample with r_k = pi_k p_k(X) / sum_l pi_k p_l(X), we implement
-        # this in a numerically more stable version.
-        # For Gaussians, r_k expands to
-        # r_k = c_k * exp(exponent_k) / sum_l c_l * exp(exponent_l).
-        # This results in division by 0 for small exponents.
-        # However, the following expression is mathematically equal for
-        # any constant m:
-        # r_k = c_k * exp(exponent_k - m) / sum_l c_l * exp(exponent_l - m)
-        # We set m = max_l exponents_l to avoid division by 0.
-
         norm_factors = np.empty(self.n_components)
         exponents = np.empty((n_samples, self.n_components))
 
@@ -406,8 +394,7 @@ class GMM(object):
                 mean=self.means[k], covariance=self.covariances[k],
                 random_state=self.random_state).to_norm_factor_and_exponents(X)
 
-        R = _safe_probability_density(self.priors * norm_factors, exponents)
-        return R
+        return _safe_probability_density(self.priors * norm_factors, exponents)
 
     def to_probability_density(self, X):
         """Compute probability density.
@@ -451,8 +438,8 @@ class GMM(object):
         means = np.empty((self.n_components, n_features))
         covariances = np.empty((self.n_components, n_features, n_features))
 
-        norm_factors = np.empty(self.n_components)
-        prior_exponents = np.empty(self.n_components)
+        marginal_norm_factors = np.empty(self.n_components)
+        marginal_prior_exponents = np.empty(self.n_components)
 
         for k in range(self.n_components):
             mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
@@ -461,11 +448,12 @@ class GMM(object):
             means[k] = conditioned.mean
             covariances[k] = conditioned.covariance
 
-            norm_factors[k], prior_exponents[k] = \
+            marginal_norm_factors[k], marginal_prior_exponents[k] = \
                 mvn.marginalize(indices).to_norm_factor_and_exponents(x)
 
         priors = _safe_probability_density(
-            self.priors * norm_factors, prior_exponents[np.newaxis])[0]
+            self.priors * marginal_norm_factors,
+            marginal_prior_exponents[np.newaxis])[0]
 
         return GMM(n_components=self.n_components, priors=priors, means=means,
                    covariances=covariances, random_state=self.random_state)
@@ -495,15 +483,15 @@ class GMM(object):
         regression_coeffs = np.empty((
             self.n_components, len(output_indices), len(indices)))
 
-        norm_factors = np.empty(self.n_components)
-        prior_exponents = np.empty((n_samples, self.n_components))
+        marginal_norm_factors = np.empty(self.n_components)
+        marginal_exponents = np.empty((n_samples, self.n_components))
 
         for k in range(self.n_components):
             regression_coeffs[k] = regression_coefficients(
                 self.covariances[k], output_indices, indices)
             mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
                       random_state=self.random_state)
-            norm_factors[k], prior_exponents[:, k] = \
+            marginal_norm_factors[k], marginal_exponents[:, k] = \
                 mvn.marginalize(indices).to_norm_factor_and_exponents(X)
 
         # posterior_means = mean_y + cov_xx^-1 * cov_xy * (x - mean_x)
@@ -515,7 +503,7 @@ class GMM(object):
                     X[:, np.newaxis] - self.means[:, indices]))
 
         priors = _safe_probability_density(
-            self.priors * norm_factors, prior_exponents)
+            self.priors * marginal_norm_factors, marginal_exponents)
         priors = priors.reshape(n_samples, 1, self.n_components)
         return np.sum(priors * posterior_means, axis=-1)
 
