@@ -20,10 +20,10 @@ class MVN(object):
 
     Parameters
     ----------
-    mean : array, shape (n_features), optional
+    mean : array-like, shape (n_features), optional
         Mean of the MVN.
 
-    covariance : array, shape (n_features, n_features), optional
+    covariance : array-like, shape (n_features, n_features), optional
         Covariance of the MVN.
 
     verbose : int, optional (default: 0)
@@ -40,6 +40,11 @@ class MVN(object):
         self.verbose = verbose
         self.random_state = check_random_state(random_state)
         self.norm = None
+
+        if self.mean is not None:
+            self.mean = np.asarray(self.mean)
+        if self.covariance is not None:
+            self.covariance = np.asarray(self.covariance)
 
     def _check_initialized(self):
         if self.mean is None:
@@ -247,10 +252,10 @@ class MVN(object):
 
         Parameters
         ----------
-        indices : array, shape (n_features_1,)
+        indices : array-like, shape (n_features_1,)
             Indices of dimensions that we want to condition.
 
-        X : array, shape (n_samples, n_features_1)
+        X : array-like, shape (n_samples, n_features_1)
             Values of the features that we know.
 
         Returns
@@ -262,6 +267,8 @@ class MVN(object):
             Covariance of the predicted features.
         """
         self._check_initialized()
+        indices = np.asarray(indices, dtype=int)
+        X = np.asarray(X)
         return condition(
             self.mean, self.covariance,
             invert_indices(self.mean.shape[0], indices), indices, X)

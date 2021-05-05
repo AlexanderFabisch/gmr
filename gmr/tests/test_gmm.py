@@ -297,6 +297,14 @@ def test_regression_without_noise():
     assert_less(mse, 0.01)
 
 
+def test_regression_with_custom_mean_covar_as_lists():
+    gmm = GMM(
+        n_components=2, priors=[0.5, 0.5], means=[[0, 1], [1, 2]],
+        covariances=[[[1, 0], [0, 1]], [[1, 0], [0, 1]]])
+    y = gmm.predict([0], [[0]])
+    assert_array_almost_equal(y, [[1.37754067]])
+
+
 def test_plot():
     """Test plot of GMM."""
     gmm = GMM(n_components=2, priors=np.array([0.5, 0.5]), means=means,

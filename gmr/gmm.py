@@ -99,13 +99,13 @@ class GMM(object):
     n_components : int
         Number of MVNs that compose the GMM.
 
-    priors : array, shape (n_components,), optional
+    priors : array-like, shape (n_components,), optional
         Weights of the components.
 
-    means : array, shape (n_components, n_features), optional
+    means : array-like, shape (n_components, n_features), optional
         Means of the components.
 
-    covariances : array, shape (n_components, n_features, n_features), optional
+    covariances : array-like, shape (n_components, n_features, n_features), optional
         Covariances of the components.
 
     verbose : int, optional (default: 0)
@@ -123,6 +123,13 @@ class GMM(object):
         self.covariances = covariances
         self.verbose = verbose
         self.random_state = check_random_state(random_state)
+
+        if self.priors is not None:
+            self.priors = np.asarray(self.priors)
+        if self.means is not None:
+            self.means = np.asarray(self.means)
+        if self.covariances is not None:
+            self.covariances = np.asarray(self.covariances)
 
     def _check_initialized(self):
         if self.priors is None:
@@ -421,10 +428,10 @@ class GMM(object):
 
         Parameters
         ----------
-        indices : array, shape (n_new_features,)
+        indices : array-like, shape (n_new_features,)
             Indices of dimensions that we want to condition.
 
-        x : array, shape (n_new_features,)
+        x : array-like, shape (n_new_features,)
             Values of the features that we know.
 
         Returns
@@ -433,6 +440,9 @@ class GMM(object):
             Conditional GMM distribution p(Y | X=x).
         """
         self._check_initialized()
+
+        indices = np.asarray(indices, dtype=int)
+        x = np.asarray(x)
 
         n_features = self.means.shape[1] - len(indices)
         means = np.empty((self.n_components, n_features))
@@ -465,10 +475,10 @@ class GMM(object):
 
         Parameters
         ----------
-        indices : array, shape (n_features_1,)
+        indices : array-like, shape (n_features_1,)
             Indices of dimensions that we want to condition.
 
-        X : array, shape (n_samples, n_features_1)
+        X : array-like, shape (n_samples, n_features_1)
             Values of the features that we know.
 
         Returns
@@ -477,6 +487,9 @@ class GMM(object):
             Predicted means of missing values.
         """
         self._check_initialized()
+
+        indices = np.asarray(indices, dtype=int)
+        X = np.asarray(X)
 
         n_samples = len(X)
         output_indices = invert_indices(self.means.shape[1], indices)
