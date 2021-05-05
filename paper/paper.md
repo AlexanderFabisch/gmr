@@ -36,7 +36,7 @@ be initialized with a GMM from sklearn, which means that we can also initialize
 it from a Bayesian GMM of scikit-learn. The prediction process for regression
 is not available in scikit-learn and, thus, will be provided by gmr.
 
-Note that while sklearn's the function GaussianMixture.predict exists,
+Note that while sklearn has the function GaussianMixture.predict,
 it does not perform regression. This function computes the index of the
 Gaussian for which the inputs have the highest probability. Furthermore,
 multi-modal regression often requires a more complicated interface to extract
