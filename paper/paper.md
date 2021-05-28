@@ -134,9 +134,9 @@ valid predictions for one input $\boldsymbol{x}$. It was introduced by
 
 ![Multimodal regression.\label{fig:multimodal_regression}](multimodal_regression.png)
 
-On the left side of \autoref{fig:multimodal_regression} you see the
+On the left side of \autoref{fig:multimodal_regression} we see the
 training data and the fitted GMM indicated by ellipses corresponding to its
-components. On the right side you see the predicted probability density
+components. On the right side we see the predicted probability density
 $p(\boldsymbol{y}|\boldsymbol{x}=0.5)$. There are three peaks that correspond
 to three different valid predictions. Each peak is represented by at least one
 of the Gaussians of the GMM.
