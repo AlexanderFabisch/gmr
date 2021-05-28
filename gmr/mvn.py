@@ -1,8 +1,9 @@
 import numpy as np
-from .utils import check_random_state, pinvh
+from .utils import check_random_state
 import scipy as sp
 from scipy.stats import chi2
 from scipy.spatial.distance import mahalanobis
+from scipy.linalg import pinvh
 
 
 def invert_indices(n_features, indices):
