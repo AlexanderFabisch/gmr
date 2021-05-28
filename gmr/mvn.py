@@ -483,7 +483,7 @@ def regression_coefficients(covariance, i1, i2, cov_12=None):
     i2 : array, shape (n_features2,)
         Output feature indices
 
-    cov12 : array, shape (n_features1, n_features2), optional (default: None)
+    cov_12 : array, shape (n_features1, n_features2), optional (default: None)
         Precomputed block of the covariance matrix between input features and
         output features
 
