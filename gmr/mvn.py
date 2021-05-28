@@ -62,6 +62,9 @@ class MVN(object):
         X : array-like, shape (n_samples, n_features)
             Samples from the true function.
 
+        bessels_correction : bool
+            Apply Bessel's correction to the covariance estimate.
+
         Returns
         -------
         self : MVN
