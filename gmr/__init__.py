@@ -5,7 +5,7 @@ gmr
 Gaussian Mixture Models (GMMs) for clustering and regression in Python.
 """
 
-__version__ = "1.6.dev"
+__version__ = "1.6"
 
 try:
     # Idea from sklearn:
