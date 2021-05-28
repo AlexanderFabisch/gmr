@@ -286,6 +286,7 @@ class MVN(object):
         d : float
             Squared Mahalanobis distance
         """
+        self._check_initialized()
         return mahalanobis(x, self.mean, np.linalg.inv(self.covariance)) ** 2
 
     def to_ellipse(self, factor=1.0):
