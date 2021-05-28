@@ -2,6 +2,7 @@ import numpy as np
 from .utils import check_random_state, pinvh
 import scipy as sp
 from scipy.stats import chi2
+from scipy.spatial.distance import mahalanobis
 
 
 def invert_indices(n_features, indices):
@@ -285,8 +286,7 @@ class MVN(object):
         d : float
             Squared Mahalanobis distance
         """
-        d = x - self.mean
-        return d.dot(np.linalg.inv(self.covariance)).dot(d)
+        return mahalanobis(x, self.mean, np.linalg.inv(self.covariance)) ** 2
 
     def to_ellipse(self, factor=1.0):
         """Compute error ellipse.
