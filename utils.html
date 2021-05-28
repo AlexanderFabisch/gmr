@@ -27,7 +27,6 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import numpy as np
-from scipy import linalg
 import numbers
 
 
@@ -48,66 +47,7 @@ def check_random_state(seed):
     if isinstance(seed, np.random.RandomState):
         return seed
     raise ValueError(&#39;%r cannot be used to seed a numpy.random.RandomState&#39;
-                     &#39; instance&#39; % seed)
-
-
-def pinvh(a, cond=None, rcond=None, lower=True):
-    &#34;&#34;&#34;Compute the (Moore-Penrose) pseudo-inverse of a hermetian matrix.
-
-    Calculate a generalized inverse of a symmetric matrix using its
-    eigenvalue decomposition and including all &#39;large&#39; eigenvalues.
-
-    Parameters
-    ----------
-    a : array, shape (N, N)
-        Real symmetric or complex hermetian matrix to be pseudo-inverted
-    cond, rcond : float or None
-        Cutoff for &#39;small&#39; eigenvalues.
-        Singular values smaller than rcond * largest_eigenvalue are considered
-        zero.
-
-        If None or -1, suitable machine precision is used.
-    lower : boolean
-        Whether the pertinent array data is taken from the lower or upper
-        triangle of a. (Default: lower)
-
-    Returns
-    -------
-    B : array, shape (N, N)
-
-    Raises
-    ------
-    LinAlgError
-        If eigenvalue does not converge
-
-    Examples
-    --------
-    &gt;&gt;&gt; import numpy as np
-    &gt;&gt;&gt; a = np.random.randn(9, 6)
-    &gt;&gt;&gt; a = np.dot(a, a.T)
-    &gt;&gt;&gt; B = pinvh(a)
-    &gt;&gt;&gt; np.allclose(a, np.dot(a, np.dot(B, a)))
-    True
-    &gt;&gt;&gt; np.allclose(B, np.dot(B, np.dot(a, B)))
-    True
-
-    &#34;&#34;&#34;
-    a = np.asarray_chkfinite(a)
-    s, u = linalg.eigh(a, lower=lower)
-
-    if rcond is not None:
-        cond = rcond
-    if cond in [None, -1]:
-        t = u.dtype.char.lower()
-        factor = {&#39;f&#39;: 1E3, &#39;d&#39;: 1E6}
-        cond = factor[t] * np.finfo(t).eps
-
-    # unlike svd case, eigh can lead to negative eigenvalues
-    above_cutoff = (abs(s) &gt; cond * np.max(abs(s)))
-    psigma_diag = np.zeros_like(s)
-    psigma_diag[above_cutoff] = 1.0 / s[above_cutoff]
-
-    return np.dot(u * psigma_diag, np.conjugate(u).T)</code></pre>
+                     &#39; instance&#39; % seed)</code></pre>
 </details>
 </section>
 <section>
@@ -148,111 +88,6 @@ Otherwise raise ValueError.</p></div>
                      &#39; instance&#39; % seed)</code></pre>
 </details>
 </dd>
-<dt id="gmr.utils.pinvh"><code class="name flex">
-<span>def <span class="ident">pinvh</span></span>(<span>a, cond=None, rcond=None, lower=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Compute the (Moore-Penrose) pseudo-inverse of a hermetian matrix.</p>
-<p>Calculate a generalized inverse of a symmetric matrix using its
-eigenvalue decomposition and including all 'large' eigenvalues.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>a</code></strong> :&ensp;<code>array, shape (N, N)</code></dt>
-<dd>Real symmetric or complex hermetian matrix to be pseudo-inverted</dd>
-<dt><strong><code>cond</code></strong>, <strong><code>rcond</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>
-<p>Cutoff for 'small' eigenvalues.
-Singular values smaller than rcond * largest_eigenvalue are considered
-zero.</p>
-<p>If None or -1, suitable machine precision is used.</p>
-</dd>
-<dt><strong><code>lower</code></strong> :&ensp;<code>boolean</code></dt>
-<dd>Whether the pertinent array data is taken from the lower or upper
-triangle of a. (Default: lower)</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>B</code></strong> :&ensp;<code>array, shape (N, N)</code></dt>
-<dd>&nbsp;</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>LinAlgError</code></dt>
-<dd>If eigenvalue does not converge</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; import numpy as np
-&gt;&gt;&gt; a = np.random.randn(9, 6)
-&gt;&gt;&gt; a = np.dot(a, a.T)
-&gt;&gt;&gt; B = pinvh(a)
-&gt;&gt;&gt; np.allclose(a, np.dot(a, np.dot(B, a)))
-True
-&gt;&gt;&gt; np.allclose(B, np.dot(B, np.dot(a, B)))
-True
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def pinvh(a, cond=None, rcond=None, lower=True):
-    &#34;&#34;&#34;Compute the (Moore-Penrose) pseudo-inverse of a hermetian matrix.
-
-    Calculate a generalized inverse of a symmetric matrix using its
-    eigenvalue decomposition and including all &#39;large&#39; eigenvalues.
-
-    Parameters
-    ----------
-    a : array, shape (N, N)
-        Real symmetric or complex hermetian matrix to be pseudo-inverted
-    cond, rcond : float or None
-        Cutoff for &#39;small&#39; eigenvalues.
-        Singular values smaller than rcond * largest_eigenvalue are considered
-        zero.
-
-        If None or -1, suitable machine precision is used.
-    lower : boolean
-        Whether the pertinent array data is taken from the lower or upper
-        triangle of a. (Default: lower)
-
-    Returns
-    -------
-    B : array, shape (N, N)
-
-    Raises
-    ------
-    LinAlgError
-        If eigenvalue does not converge
-
-    Examples
-    --------
-    &gt;&gt;&gt; import numpy as np
-    &gt;&gt;&gt; a = np.random.randn(9, 6)
-    &gt;&gt;&gt; a = np.dot(a, a.T)
-    &gt;&gt;&gt; B = pinvh(a)
-    &gt;&gt;&gt; np.allclose(a, np.dot(a, np.dot(B, a)))
-    True
-    &gt;&gt;&gt; np.allclose(B, np.dot(B, np.dot(a, B)))
-    True
-
-    &#34;&#34;&#34;
-    a = np.asarray_chkfinite(a)
-    s, u = linalg.eigh(a, lower=lower)
-
-    if rcond is not None:
-        cond = rcond
-    if cond in [None, -1]:
-        t = u.dtype.char.lower()
-        factor = {&#39;f&#39;: 1E3, &#39;d&#39;: 1E6}
-        cond = factor[t] * np.finfo(t).eps
-
-    # unlike svd case, eigh can lead to negative eigenvalues
-    above_cutoff = (abs(s) &gt; cond * np.max(abs(s)))
-    psigma_diag = np.zeros_like(s)
-    psigma_diag[above_cutoff] = 1.0 / s[above_cutoff]
-
-    return np.dot(u * psigma_diag, np.conjugate(u).T)</code></pre>
-</details>
-</dd>
 </dl>
 </section>
 <section>
@@ -272,7 +107,6 @@ True
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="gmr.utils.check_random_state" href="#gmr.utils.check_random_state">check_random_state</a></code></li>
-<li><code><a title="gmr.utils.pinvh" href="#gmr.utils.pinvh">pinvh</a></code></li>
 </ul>
 </li>
 </ul>

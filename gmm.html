@@ -30,7 +30,7 @@
 from scipy.spatial.distance import cdist, pdist
 from scipy.stats import chi2
 from .utils import check_random_state
-from .mvn import MVN
+from .mvn import MVN, invert_indices, regression_coefficients
 
 
 def kmeansplusplus_initialization(X, n_components, random_state=None):
@@ -127,13 +127,13 @@ class GMM(object):
     n_components : int
         Number of MVNs that compose the GMM.
 
-    priors : array, shape (n_components,), optional
+    priors : array-like, shape (n_components,), optional
         Weights of the components.
 
-    means : array, shape (n_components, n_features), optional
+    means : array-like, shape (n_components, n_features), optional
         Means of the components.
 
-    covariances : array, shape (n_components, n_features, n_features), optional
+    covariances : array-like, shape (n_components, n_features, n_features), optional
         Covariances of the components.
 
     verbose : int, optional (default: 0)
@@ -152,6 +152,13 @@ class GMM(object):
         self.verbose = verbose
         self.random_state = check_random_state(random_state)
 
+        if self.priors is not None:
+            self.priors = np.asarray(self.priors)
+        if self.means is not None:
+            self.means = np.asarray(self.means)
+        if self.covariances is not None:
+            self.covariances = np.asarray(self.covariances)
+
     def _check_initialized(self):
         if self.priors is None:
             raise ValueError(&#34;Priors have not been initialized&#34;)
@@ -160,7 +167,8 @@ class GMM(object):
         if self.covariances is None:
             raise ValueError(&#34;Covariances have not been initialized&#34;)
 
-    def from_samples(self, X, R_diff=1e-4, n_iter=100, init_params=&#34;random&#34;):
+    def from_samples(self, X, R_diff=1e-4, n_iter=100, init_params=&#34;random&#34;,
+                     oracle_approximating_shrinkage=False):
         &#34;&#34;&#34;MLE of the mean and covariance.
 
         Expectation-maximization is used to infer the model parameters. The
@@ -190,6 +198,10 @@ class GMM(object):
             set based on the average distances of samples in each dimensions.
             This is computationally more expensive but often gives much
             better results.
+
+        oracle_approximating_shrinkage : bool, optional (default: False)
+            Use Oracle Approximating Shrinkage (OAS) estimator for covariances
+            to ensure positive semi-definiteness.
 
         Returns
         -------
@@ -245,7 +257,57 @@ class GMM(object):
                 Xm = X - self.means[k]
                 self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
 
+            if oracle_approximating_shrinkage:
+                n_samples_eff = (np.sum(R_n, axis=0) ** 2 /
+                                 np.sum(R_n ** 2, axis=0))
+                self.apply_oracle_approximating_shrinkage(n_samples_eff)
+
         return self
+
+    def apply_oracle_approximating_shrinkage(self, n_samples_eff):
+        &#34;&#34;&#34;Apply Oracle Approximating Shrinkage to covariances.
+
+        Empirical covariances might have negative eigenvalues caused by
+        numerical issues so that they are not positive semi-definite and
+        are not invertible. In these cases it is better to apply this
+        function after training. You can also apply it after each
+        EM step with a flag of `GMM.from_samples`.
+
+        This is an implementation of
+
+        Chen et al., “Shrinkage Algorithms for MMSE Covariance Estimation”,
+        IEEE Trans. on Sign. Proc., Volume 58, Issue 10, October 2010.
+
+        based on the implementation of scikit-learn:
+
+        https://scikit-learn.org/stable/modules/generated/oas-function.html#sklearn.covariance.oas
+
+        Parameters
+        ----------
+        n_samples_eff : float or array-like, shape (n_components,)
+            Number of effective samples from which the covariances have been
+            estimated. A rough estimate would be the size of the dataset.
+            Covariances are computed from a weighted dataset in EM. In this
+            case we can compute the number of effective samples by
+            `np.sum(weights, axis=0) ** 2 / np.sum(weights ** 2, axis=0)`
+            from an array weights of shape (n_samples, n_components).
+        &#34;&#34;&#34;
+        self._check_initialized()
+        n_samples_eff = np.ones(self.n_components) * np.asarray(n_samples_eff)
+
+        n_features = self.means.shape[1]
+        for k in range(self.n_components):
+            emp_cov = self.covariances[k]
+            mu = np.trace(emp_cov) / n_features
+            alpha = np.mean(emp_cov ** 2)
+            num = alpha + mu ** 2
+            den = (n_samples_eff[k] + 1.) * (alpha - (mu ** 2) / n_features)
+
+            shrinkage = 1. if den == 0 else min(num / den, 1.)
+            shrunk_cov = (1. - shrinkage) * emp_cov
+            shrunk_cov.flat[::n_features + 1] += shrinkage * mu
+
+            self.covariances[k] = shrunk_cov
 
     def sample(self, n_samples):
         &#34;&#34;&#34;Sample from Gaussian mixture distribution.
@@ -358,15 +420,16 @@ class GMM(object):
         self._check_initialized()
 
         n_samples = X.shape[0]
-        R = np.empty((n_samples, self.n_components))
+
+        norm_factors = np.empty(self.n_components)
+        exponents = np.empty((n_samples, self.n_components))
+
         for k in range(self.n_components):
-            R[:, k] = self.priors[k] * MVN(
+            norm_factors[k], exponents[:, k] = MVN(
                 mean=self.means[k], covariance=self.covariances[k],
-                random_state=self.random_state).to_probability_density(X)
-        R_norm = R.sum(axis=1)[:, np.newaxis]
-        R_norm[np.where(R_norm == 0.0)] = 1.0
-        R /= R_norm
-        return R
+                random_state=self.random_state).to_norm_factor_and_exponents(X)
+
+        return _safe_probability_density(self.priors * norm_factors, exponents)
 
     def to_probability_density(self, X):
         &#34;&#34;&#34;Compute probability density.
@@ -393,10 +456,10 @@ class GMM(object):
 
         Parameters
         ----------
-        indices : array, shape (n_new_features,)
+        indices : array-like, shape (n_new_features,)
             Indices of dimensions that we want to condition.
 
-        x : array, shape (n_new_features,)
+        x : array-like, shape (n_new_features,)
             Values of the features that we know.
 
         Returns
@@ -406,19 +469,30 @@ class GMM(object):
         &#34;&#34;&#34;
         self._check_initialized()
 
+        indices = np.asarray(indices, dtype=int)
+        x = np.asarray(x)
+
         n_features = self.means.shape[1] - len(indices)
-        priors = np.empty(self.n_components)
         means = np.empty((self.n_components, n_features))
         covariances = np.empty((self.n_components, n_features, n_features))
+
+        marginal_norm_factors = np.empty(self.n_components)
+        marginal_prior_exponents = np.empty(self.n_components)
+
         for k in range(self.n_components):
             mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
                       random_state=self.random_state)
             conditioned = mvn.condition(indices, x)
-            priors[k] = (self.priors[k] *
-                         mvn.marginalize(indices).to_probability_density(x))
             means[k] = conditioned.mean
             covariances[k] = conditioned.covariance
-        priors /= priors.sum()
+
+            marginal_norm_factors[k], marginal_prior_exponents[k] = \
+                mvn.marginalize(indices).to_norm_factor_and_exponents(x)
+
+        priors = _safe_probability_density(
+            self.priors * marginal_norm_factors,
+            marginal_prior_exponents[np.newaxis])[0]
+
         return GMM(n_components=self.n_components, priors=priors, means=means,
                    covariances=covariances, random_state=self.random_state)
 
@@ -429,10 +503,10 @@ class GMM(object):
 
         Parameters
         ----------
-        indices : array, shape (n_features_1,)
+        indices : array-like, shape (n_features_1,)
             Indices of dimensions that we want to condition.
 
-        X : array, shape (n_samples, n_features_1)
+        X : array-like, shape (n_samples, n_features_1)
             Values of the features that we know.
 
         Returns
@@ -442,13 +516,37 @@ class GMM(object):
         &#34;&#34;&#34;
         self._check_initialized()
 
-        n_samples, n_features_1 = X.shape
-        n_features_2 = self.means.shape[1] - n_features_1
-        Y = np.empty((n_samples, n_features_2))
-        for n in range(n_samples):
-            conditioned = self.condition(indices, X[n])
-            Y[n] = conditioned.priors.dot(conditioned.means)
-        return Y
+        indices = np.asarray(indices, dtype=int)
+        X = np.asarray(X)
+
+        n_samples = len(X)
+        output_indices = invert_indices(self.means.shape[1], indices)
+        regression_coeffs = np.empty((
+            self.n_components, len(output_indices), len(indices)))
+
+        marginal_norm_factors = np.empty(self.n_components)
+        marginal_exponents = np.empty((n_samples, self.n_components))
+
+        for k in range(self.n_components):
+            regression_coeffs[k] = regression_coefficients(
+                self.covariances[k], output_indices, indices)
+            mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
+                      random_state=self.random_state)
+            marginal_norm_factors[k], marginal_exponents[:, k] = \
+                mvn.marginalize(indices).to_norm_factor_and_exponents(X)
+
+        # posterior_means = mean_y + cov_xx^-1 * cov_xy * (x - mean_x)
+        posterior_means = (
+                self.means[:, output_indices][:, :, np.newaxis].T +
+                np.einsum(
+                    &#34;ijk,lik-&gt;lji&#34;,
+                    regression_coeffs,
+                    X[:, np.newaxis] - self.means[:, indices]))
+
+        priors = _safe_probability_density(
+            self.priors * marginal_norm_factors, marginal_exponents)
+        priors = priors.reshape(n_samples, 1, self.n_components)
+        return np.sum(priors * posterior_means, axis=-1)
 
     def to_ellipses(self, factor=1.0):
         &#34;&#34;&#34;Compute error ellipses.
@@ -549,7 +647,41 @@ def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25, factors=np.linspace(0.
             ell.set_alpha(alpha)
             if colors is not None:
                 ell.set_color(next(colors))
-            ax.add_artist(ell)</code></pre>
+            ax.add_artist(ell)
+
+
+def _safe_probability_density(norm_factors, exponents):
+    &#34;&#34;&#34;Compute numerically safe probability densities of a GMM.
+
+    The probability density of individual Gaussians in a GMM can be computed
+    from a formula of the form
+    q_k(X=x) = p_k(X=x) / sum_l p_l(X=x)
+    where p_k(X=x) = c_k * exp(exponent_k) so that
+    q_k(X=x) = c_k * exp(exponent_k) / sum_l c_l * exp(exponent_l)
+    Instead of using computing this directly, we implement it in a numerically
+    more stable version that works better for very small or large exponents
+    that would otherwise lead to NaN or division by 0.
+    The following expression is mathematically equal for any constant m:
+    q_k(X=x) = c_k * exp(exponent_k - m) / sum_l c_l * exp(exponent_l - m),
+    where we set m = max_l exponents_l.
+
+    Parameters
+    ----------
+    norm_factors : array, shape (n_components,)
+        Normalization factors of individual Gaussians
+
+    exponents : array, shape (n_samples, n_components)
+        Exponents of each combination of Gaussian and sample
+
+    Returns
+    -------
+    p : array, shape (n_samples, n_components)
+        Probability density of each sample
+    &#34;&#34;&#34;
+    m = np.max(exponents, axis=1)[:, np.newaxis]
+    p = norm_factors[np.newaxis] * np.exp(exponents - m)
+    p /= np.sum(p, axis=1)[:, np.newaxis]
+    return p</code></pre>
 </details>
 </section>
 <section>
@@ -759,11 +891,11 @@ random number generator.</dd>
 <dl>
 <dt><strong><code>n_components</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of MVNs that compose the GMM.</dd>
-<dt><strong><code>priors</code></strong> :&ensp;<code>array, shape (n_components,)</code>, optional</dt>
+<dt><strong><code>priors</code></strong> :&ensp;<code>array-like, shape (n_components,)</code>, optional</dt>
 <dd>Weights of the components.</dd>
-<dt><strong><code>means</code></strong> :&ensp;<code>array, shape (n_components, n_features)</code>, optional</dt>
+<dt><strong><code>means</code></strong> :&ensp;<code>array-like, shape (n_components, n_features)</code>, optional</dt>
 <dd>Means of the components.</dd>
-<dt><strong><code>covariances</code></strong> :&ensp;<code>array, shape (n_components, n_features, n_features)</code>, optional</dt>
+<dt><strong><code>covariances</code></strong> :&ensp;<code>array-like, shape (n_components, n_features, n_features)</code>, optional</dt>
 <dd>Covariances of the components.</dd>
 <dt><strong><code>verbose</code></strong> :&ensp;<code>int</code>, optional <code>(default: 0)</code></dt>
 <dd>Verbosity level.</dd>
@@ -783,13 +915,13 @@ random number generator.</dd>
     n_components : int
         Number of MVNs that compose the GMM.
 
-    priors : array, shape (n_components,), optional
+    priors : array-like, shape (n_components,), optional
         Weights of the components.
 
-    means : array, shape (n_components, n_features), optional
+    means : array-like, shape (n_components, n_features), optional
         Means of the components.
 
-    covariances : array, shape (n_components, n_features, n_features), optional
+    covariances : array-like, shape (n_components, n_features, n_features), optional
         Covariances of the components.
 
     verbose : int, optional (default: 0)
@@ -808,6 +940,13 @@ random number generator.</dd>
         self.verbose = verbose
         self.random_state = check_random_state(random_state)
 
+        if self.priors is not None:
+            self.priors = np.asarray(self.priors)
+        if self.means is not None:
+            self.means = np.asarray(self.means)
+        if self.covariances is not None:
+            self.covariances = np.asarray(self.covariances)
+
     def _check_initialized(self):
         if self.priors is None:
             raise ValueError(&#34;Priors have not been initialized&#34;)
@@ -816,7 +955,8 @@ random number generator.</dd>
         if self.covariances is None:
             raise ValueError(&#34;Covariances have not been initialized&#34;)
 
-    def from_samples(self, X, R_diff=1e-4, n_iter=100, init_params=&#34;random&#34;):
+    def from_samples(self, X, R_diff=1e-4, n_iter=100, init_params=&#34;random&#34;,
+                     oracle_approximating_shrinkage=False):
         &#34;&#34;&#34;MLE of the mean and covariance.
 
         Expectation-maximization is used to infer the model parameters. The
@@ -846,6 +986,10 @@ random number generator.</dd>
             set based on the average distances of samples in each dimensions.
             This is computationally more expensive but often gives much
             better results.
+
+        oracle_approximating_shrinkage : bool, optional (default: False)
+            Use Oracle Approximating Shrinkage (OAS) estimator for covariances
+            to ensure positive semi-definiteness.
 
         Returns
         -------
@@ -901,7 +1045,57 @@ random number generator.</dd>
                 Xm = X - self.means[k]
                 self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
 
+            if oracle_approximating_shrinkage:
+                n_samples_eff = (np.sum(R_n, axis=0) ** 2 /
+                                 np.sum(R_n ** 2, axis=0))
+                self.apply_oracle_approximating_shrinkage(n_samples_eff)
+
         return self
+
+    def apply_oracle_approximating_shrinkage(self, n_samples_eff):
+        &#34;&#34;&#34;Apply Oracle Approximating Shrinkage to covariances.
+
+        Empirical covariances might have negative eigenvalues caused by
+        numerical issues so that they are not positive semi-definite and
+        are not invertible. In these cases it is better to apply this
+        function after training. You can also apply it after each
+        EM step with a flag of `GMM.from_samples`.
+
+        This is an implementation of
+
+        Chen et al., “Shrinkage Algorithms for MMSE Covariance Estimation”,
+        IEEE Trans. on Sign. Proc., Volume 58, Issue 10, October 2010.
+
+        based on the implementation of scikit-learn:
+
+        https://scikit-learn.org/stable/modules/generated/oas-function.html#sklearn.covariance.oas
+
+        Parameters
+        ----------
+        n_samples_eff : float or array-like, shape (n_components,)
+            Number of effective samples from which the covariances have been
+            estimated. A rough estimate would be the size of the dataset.
+            Covariances are computed from a weighted dataset in EM. In this
+            case we can compute the number of effective samples by
+            `np.sum(weights, axis=0) ** 2 / np.sum(weights ** 2, axis=0)`
+            from an array weights of shape (n_samples, n_components).
+        &#34;&#34;&#34;
+        self._check_initialized()
+        n_samples_eff = np.ones(self.n_components) * np.asarray(n_samples_eff)
+
+        n_features = self.means.shape[1]
+        for k in range(self.n_components):
+            emp_cov = self.covariances[k]
+            mu = np.trace(emp_cov) / n_features
+            alpha = np.mean(emp_cov ** 2)
+            num = alpha + mu ** 2
+            den = (n_samples_eff[k] + 1.) * (alpha - (mu ** 2) / n_features)
+
+            shrinkage = 1. if den == 0 else min(num / den, 1.)
+            shrunk_cov = (1. - shrinkage) * emp_cov
+            shrunk_cov.flat[::n_features + 1] += shrinkage * mu
+
+            self.covariances[k] = shrunk_cov
 
     def sample(self, n_samples):
         &#34;&#34;&#34;Sample from Gaussian mixture distribution.
@@ -1014,15 +1208,16 @@ random number generator.</dd>
         self._check_initialized()
 
         n_samples = X.shape[0]
-        R = np.empty((n_samples, self.n_components))
+
+        norm_factors = np.empty(self.n_components)
+        exponents = np.empty((n_samples, self.n_components))
+
         for k in range(self.n_components):
-            R[:, k] = self.priors[k] * MVN(
+            norm_factors[k], exponents[:, k] = MVN(
                 mean=self.means[k], covariance=self.covariances[k],
-                random_state=self.random_state).to_probability_density(X)
-        R_norm = R.sum(axis=1)[:, np.newaxis]
-        R_norm[np.where(R_norm == 0.0)] = 1.0
-        R /= R_norm
-        return R
+                random_state=self.random_state).to_norm_factor_and_exponents(X)
+
+        return _safe_probability_density(self.priors * norm_factors, exponents)
 
     def to_probability_density(self, X):
         &#34;&#34;&#34;Compute probability density.
@@ -1049,10 +1244,10 @@ random number generator.</dd>
 
         Parameters
         ----------
-        indices : array, shape (n_new_features,)
+        indices : array-like, shape (n_new_features,)
             Indices of dimensions that we want to condition.
 
-        x : array, shape (n_new_features,)
+        x : array-like, shape (n_new_features,)
             Values of the features that we know.
 
         Returns
@@ -1062,19 +1257,30 @@ random number generator.</dd>
         &#34;&#34;&#34;
         self._check_initialized()
 
+        indices = np.asarray(indices, dtype=int)
+        x = np.asarray(x)
+
         n_features = self.means.shape[1] - len(indices)
-        priors = np.empty(self.n_components)
         means = np.empty((self.n_components, n_features))
         covariances = np.empty((self.n_components, n_features, n_features))
+
+        marginal_norm_factors = np.empty(self.n_components)
+        marginal_prior_exponents = np.empty(self.n_components)
+
         for k in range(self.n_components):
             mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
                       random_state=self.random_state)
             conditioned = mvn.condition(indices, x)
-            priors[k] = (self.priors[k] *
-                         mvn.marginalize(indices).to_probability_density(x))
             means[k] = conditioned.mean
             covariances[k] = conditioned.covariance
-        priors /= priors.sum()
+
+            marginal_norm_factors[k], marginal_prior_exponents[k] = \
+                mvn.marginalize(indices).to_norm_factor_and_exponents(x)
+
+        priors = _safe_probability_density(
+            self.priors * marginal_norm_factors,
+            marginal_prior_exponents[np.newaxis])[0]
+
         return GMM(n_components=self.n_components, priors=priors, means=means,
                    covariances=covariances, random_state=self.random_state)
 
@@ -1085,10 +1291,10 @@ random number generator.</dd>
 
         Parameters
         ----------
-        indices : array, shape (n_features_1,)
+        indices : array-like, shape (n_features_1,)
             Indices of dimensions that we want to condition.
 
-        X : array, shape (n_samples, n_features_1)
+        X : array-like, shape (n_samples, n_features_1)
             Values of the features that we know.
 
         Returns
@@ -1098,13 +1304,37 @@ random number generator.</dd>
         &#34;&#34;&#34;
         self._check_initialized()
 
-        n_samples, n_features_1 = X.shape
-        n_features_2 = self.means.shape[1] - n_features_1
-        Y = np.empty((n_samples, n_features_2))
-        for n in range(n_samples):
-            conditioned = self.condition(indices, X[n])
-            Y[n] = conditioned.priors.dot(conditioned.means)
-        return Y
+        indices = np.asarray(indices, dtype=int)
+        X = np.asarray(X)
+
+        n_samples = len(X)
+        output_indices = invert_indices(self.means.shape[1], indices)
+        regression_coeffs = np.empty((
+            self.n_components, len(output_indices), len(indices)))
+
+        marginal_norm_factors = np.empty(self.n_components)
+        marginal_exponents = np.empty((n_samples, self.n_components))
+
+        for k in range(self.n_components):
+            regression_coeffs[k] = regression_coefficients(
+                self.covariances[k], output_indices, indices)
+            mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
+                      random_state=self.random_state)
+            marginal_norm_factors[k], marginal_exponents[:, k] = \
+                mvn.marginalize(indices).to_norm_factor_and_exponents(X)
+
+        # posterior_means = mean_y + cov_xx^-1 * cov_xy * (x - mean_x)
+        posterior_means = (
+                self.means[:, output_indices][:, :, np.newaxis].T +
+                np.einsum(
+                    &#34;ijk,lik-&gt;lji&#34;,
+                    regression_coeffs,
+                    X[:, np.newaxis] - self.means[:, indices]))
+
+        priors = _safe_probability_density(
+            self.priors * marginal_norm_factors, marginal_exponents)
+        priors = priors.reshape(n_samples, 1, self.n_components)
+        return np.sum(priors * posterior_means, axis=-1)
 
     def to_ellipses(self, factor=1.0):
         &#34;&#34;&#34;Compute error ellipses.
@@ -1175,6 +1405,81 @@ random number generator.</dd>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gmr.gmm.GMM.apply_oracle_approximating_shrinkage"><code class="name flex">
+<span>def <span class="ident">apply_oracle_approximating_shrinkage</span></span>(<span>self, n_samples_eff)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Apply Oracle Approximating Shrinkage to covariances.</p>
+<p>Empirical covariances might have negative eigenvalues caused by
+numerical issues so that they are not positive semi-definite and
+are not invertible. In these cases it is better to apply this
+function after training. You can also apply it after each
+EM step with a flag of <code><a title="gmr.gmm.GMM.from_samples" href="#gmr.gmm.GMM.from_samples">GMM.from_samples()</a></code>.</p>
+<p>This is an implementation of</p>
+<p>Chen et al., “Shrinkage Algorithms for MMSE Covariance Estimation”,
+IEEE Trans. on Sign. Proc., Volume 58, Issue 10, October 2010.</p>
+<p>based on the implementation of scikit-learn:</p>
+<p><a href="https://scikit-learn.org/stable/modules/generated/oas-function.html#sklearn.covariance.oas">https://scikit-learn.org/stable/modules/generated/oas-function.html#sklearn.covariance.oas</a></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n_samples_eff</code></strong> :&ensp;<code>float</code> or <code>array-like, shape (n_components,)</code></dt>
+<dd>Number of effective samples from which the covariances have been
+estimated. A rough estimate would be the size of the dataset.
+Covariances are computed from a weighted dataset in EM. In this
+case we can compute the number of effective samples by
+<code>np.sum(weights, axis=0) ** 2 / np.sum(weights ** 2, axis=0)</code>
+from an array weights of shape (n_samples, n_components).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def apply_oracle_approximating_shrinkage(self, n_samples_eff):
+    &#34;&#34;&#34;Apply Oracle Approximating Shrinkage to covariances.
+
+    Empirical covariances might have negative eigenvalues caused by
+    numerical issues so that they are not positive semi-definite and
+    are not invertible. In these cases it is better to apply this
+    function after training. You can also apply it after each
+    EM step with a flag of `GMM.from_samples`.
+
+    This is an implementation of
+
+    Chen et al., “Shrinkage Algorithms for MMSE Covariance Estimation”,
+    IEEE Trans. on Sign. Proc., Volume 58, Issue 10, October 2010.
+
+    based on the implementation of scikit-learn:
+
+    https://scikit-learn.org/stable/modules/generated/oas-function.html#sklearn.covariance.oas
+
+    Parameters
+    ----------
+    n_samples_eff : float or array-like, shape (n_components,)
+        Number of effective samples from which the covariances have been
+        estimated. A rough estimate would be the size of the dataset.
+        Covariances are computed from a weighted dataset in EM. In this
+        case we can compute the number of effective samples by
+        `np.sum(weights, axis=0) ** 2 / np.sum(weights ** 2, axis=0)`
+        from an array weights of shape (n_samples, n_components).
+    &#34;&#34;&#34;
+    self._check_initialized()
+    n_samples_eff = np.ones(self.n_components) * np.asarray(n_samples_eff)
+
+    n_features = self.means.shape[1]
+    for k in range(self.n_components):
+        emp_cov = self.covariances[k]
+        mu = np.trace(emp_cov) / n_features
+        alpha = np.mean(emp_cov ** 2)
+        num = alpha + mu ** 2
+        den = (n_samples_eff[k] + 1.) * (alpha - (mu ** 2) / n_features)
+
+        shrinkage = 1. if den == 0 else min(num / den, 1.)
+        shrunk_cov = (1. - shrinkage) * emp_cov
+        shrunk_cov.flat[::n_features + 1] += shrinkage * mu
+
+        self.covariances[k] = shrunk_cov</code></pre>
+</details>
+</dd>
 <dt id="gmr.gmm.GMM.condition"><code class="name flex">
 <span>def <span class="ident">condition</span></span>(<span>self, indices, x)</span>
 </code></dt>
@@ -1182,9 +1487,9 @@ random number generator.</dd>
 <div class="desc"><p>Conditional distribution over given indices.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>indices</code></strong> :&ensp;<code>array, shape (n_new_features,)</code></dt>
+<dt><strong><code>indices</code></strong> :&ensp;<code>array-like, shape (n_new_features,)</code></dt>
 <dd>Indices of dimensions that we want to condition.</dd>
-<dt><strong><code>x</code></strong> :&ensp;<code>array, shape (n_new_features,)</code></dt>
+<dt><strong><code>x</code></strong> :&ensp;<code>array-like, shape (n_new_features,)</code></dt>
 <dd>Values of the features that we know.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -1201,10 +1506,10 @@ random number generator.</dd>
 
     Parameters
     ----------
-    indices : array, shape (n_new_features,)
+    indices : array-like, shape (n_new_features,)
         Indices of dimensions that we want to condition.
 
-    x : array, shape (n_new_features,)
+    x : array-like, shape (n_new_features,)
         Values of the features that we know.
 
     Returns
@@ -1214,19 +1519,30 @@ random number generator.</dd>
     &#34;&#34;&#34;
     self._check_initialized()
 
+    indices = np.asarray(indices, dtype=int)
+    x = np.asarray(x)
+
     n_features = self.means.shape[1] - len(indices)
-    priors = np.empty(self.n_components)
     means = np.empty((self.n_components, n_features))
     covariances = np.empty((self.n_components, n_features, n_features))
+
+    marginal_norm_factors = np.empty(self.n_components)
+    marginal_prior_exponents = np.empty(self.n_components)
+
     for k in range(self.n_components):
         mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
                   random_state=self.random_state)
         conditioned = mvn.condition(indices, x)
-        priors[k] = (self.priors[k] *
-                     mvn.marginalize(indices).to_probability_density(x))
         means[k] = conditioned.mean
         covariances[k] = conditioned.covariance
-    priors /= priors.sum()
+
+        marginal_norm_factors[k], marginal_prior_exponents[k] = \
+            mvn.marginalize(indices).to_norm_factor_and_exponents(x)
+
+    priors = _safe_probability_density(
+        self.priors * marginal_norm_factors,
+        marginal_prior_exponents[np.newaxis])[0]
+
     return GMM(n_components=self.n_components, priors=priors, means=means,
                covariances=covariances, random_state=self.random_state)</code></pre>
 </details>
@@ -1274,7 +1590,7 @@ random number generator.</dd>
 </details>
 </dd>
 <dt id="gmr.gmm.GMM.from_samples"><code class="name flex">
-<span>def <span class="ident">from_samples</span></span>(<span>self, X, R_diff=0.0001, n_iter=100, init_params='random')</span>
+<span>def <span class="ident">from_samples</span></span>(<span>self, X, R_diff=0.0001, n_iter=100, init_params='random', oracle_approximating_shrinkage=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>MLE of the mean and covariance.</p>
@@ -1301,6 +1617,9 @@ initialize covariances to diagonal matrices with variances
 set based on the average distances of samples in each dimensions.
 This is computationally more expensive but often gives much
 better results.</dd>
+<dt><strong><code>oracle_approximating_shrinkage</code></strong> :&ensp;<code>bool</code>, optional <code>(default: False)</code></dt>
+<dd>Use Oracle Approximating Shrinkage (OAS) estimator for covariances
+to ensure positive semi-definiteness.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1311,7 +1630,8 @@ better results.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_samples(self, X, R_diff=1e-4, n_iter=100, init_params=&#34;random&#34;):
+<pre><code class="python">def from_samples(self, X, R_diff=1e-4, n_iter=100, init_params=&#34;random&#34;,
+                 oracle_approximating_shrinkage=False):
     &#34;&#34;&#34;MLE of the mean and covariance.
 
     Expectation-maximization is used to infer the model parameters. The
@@ -1341,6 +1661,10 @@ better results.</dd>
         set based on the average distances of samples in each dimensions.
         This is computationally more expensive but often gives much
         better results.
+
+    oracle_approximating_shrinkage : bool, optional (default: False)
+        Use Oracle Approximating Shrinkage (OAS) estimator for covariances
+        to ensure positive semi-definiteness.
 
     Returns
     -------
@@ -1395,6 +1719,11 @@ better results.</dd>
         for k in range(self.n_components):
             Xm = X - self.means[k]
             self.covariances[k] = (R_n[:, k, np.newaxis] * Xm).T.dot(Xm)
+
+        if oracle_approximating_shrinkage:
+            n_samples_eff = (np.sum(R_n, axis=0) ** 2 /
+                             np.sum(R_n ** 2, axis=0))
+            self.apply_oracle_approximating_shrinkage(n_samples_eff)
 
     return self</code></pre>
 </details>
@@ -1462,9 +1791,9 @@ region or 0.9545 for the 2-sigma confidence region.</dd>
 <p>Same as condition() but for multiple samples.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>indices</code></strong> :&ensp;<code>array, shape (n_features_1,)</code></dt>
+<dt><strong><code>indices</code></strong> :&ensp;<code>array-like, shape (n_features_1,)</code></dt>
 <dd>Indices of dimensions that we want to condition.</dd>
-<dt><strong><code>X</code></strong> :&ensp;<code>array, shape (n_samples, n_features_1)</code></dt>
+<dt><strong><code>X</code></strong> :&ensp;<code>array-like, shape (n_samples, n_features_1)</code></dt>
 <dd>Values of the features that we know.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -1483,10 +1812,10 @@ region or 0.9545 for the 2-sigma confidence region.</dd>
 
     Parameters
     ----------
-    indices : array, shape (n_features_1,)
+    indices : array-like, shape (n_features_1,)
         Indices of dimensions that we want to condition.
 
-    X : array, shape (n_samples, n_features_1)
+    X : array-like, shape (n_samples, n_features_1)
         Values of the features that we know.
 
     Returns
@@ -1496,13 +1825,37 @@ region or 0.9545 for the 2-sigma confidence region.</dd>
     &#34;&#34;&#34;
     self._check_initialized()
 
-    n_samples, n_features_1 = X.shape
-    n_features_2 = self.means.shape[1] - n_features_1
-    Y = np.empty((n_samples, n_features_2))
-    for n in range(n_samples):
-        conditioned = self.condition(indices, X[n])
-        Y[n] = conditioned.priors.dot(conditioned.means)
-    return Y</code></pre>
+    indices = np.asarray(indices, dtype=int)
+    X = np.asarray(X)
+
+    n_samples = len(X)
+    output_indices = invert_indices(self.means.shape[1], indices)
+    regression_coeffs = np.empty((
+        self.n_components, len(output_indices), len(indices)))
+
+    marginal_norm_factors = np.empty(self.n_components)
+    marginal_exponents = np.empty((n_samples, self.n_components))
+
+    for k in range(self.n_components):
+        regression_coeffs[k] = regression_coefficients(
+            self.covariances[k], output_indices, indices)
+        mvn = MVN(mean=self.means[k], covariance=self.covariances[k],
+                  random_state=self.random_state)
+        marginal_norm_factors[k], marginal_exponents[:, k] = \
+            mvn.marginalize(indices).to_norm_factor_and_exponents(X)
+
+    # posterior_means = mean_y + cov_xx^-1 * cov_xy * (x - mean_x)
+    posterior_means = (
+            self.means[:, output_indices][:, :, np.newaxis].T +
+            np.einsum(
+                &#34;ijk,lik-&gt;lji&#34;,
+                regression_coeffs,
+                X[:, np.newaxis] - self.means[:, indices]))
+
+    priors = _safe_probability_density(
+        self.priors * marginal_norm_factors, marginal_exponents)
+    priors = priors.reshape(n_samples, 1, self.n_components)
+    return np.sum(priors * posterior_means, axis=-1)</code></pre>
 </details>
 </dd>
 <dt id="gmr.gmm.GMM.sample"><code class="name flex">
@@ -1775,15 +2128,16 @@ and heights are semi axes, not diameters.</dd>
     self._check_initialized()
 
     n_samples = X.shape[0]
-    R = np.empty((n_samples, self.n_components))
+
+    norm_factors = np.empty(self.n_components)
+    exponents = np.empty((n_samples, self.n_components))
+
     for k in range(self.n_components):
-        R[:, k] = self.priors[k] * MVN(
+        norm_factors[k], exponents[:, k] = MVN(
             mean=self.means[k], covariance=self.covariances[k],
-            random_state=self.random_state).to_probability_density(X)
-    R_norm = R.sum(axis=1)[:, np.newaxis]
-    R_norm[np.where(R_norm == 0.0)] = 1.0
-    R /= R_norm
-    return R</code></pre>
+            random_state=self.random_state).to_norm_factor_and_exponents(X)
+
+    return _safe_probability_density(self.priors * norm_factors, exponents)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1814,6 +2168,7 @@ and heights are semi axes, not diameters.</dd>
 <li>
 <h4><code><a title="gmr.gmm.GMM" href="#gmr.gmm.GMM">GMM</a></code></h4>
 <ul class="">
+<li><code><a title="gmr.gmm.GMM.apply_oracle_approximating_shrinkage" href="#gmr.gmm.GMM.apply_oracle_approximating_shrinkage">apply_oracle_approximating_shrinkage</a></code></li>
 <li><code><a title="gmr.gmm.GMM.condition" href="#gmr.gmm.GMM.condition">condition</a></code></li>
 <li><code><a title="gmr.gmm.GMM.extract_mvn" href="#gmr.gmm.GMM.extract_mvn">extract_mvn</a></code></li>
 <li><code><a title="gmr.gmm.GMM.from_samples" href="#gmr.gmm.GMM.from_samples">from_samples</a></code></li>
