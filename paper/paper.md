@@ -162,4 +162,10 @@ Hence, we can resample as long as we are not in an $\alpha$-confidence region,
 where $\alpha \in \left[0, 1\right]$. This strategy is used here and is
 directly provided by the library.
 
+# Acknowledgments
+
+This work was supported through a grant of the German Federal
+Ministry of Economic Affairs and Energy (BMWi, FKZ 50 RA 1701)
+and one grant from the European Commission (870142).
+
 # References
