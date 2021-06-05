@@ -9,7 +9,7 @@ authors:
    orcid: 0000-0003-2824-7956
    affiliation: 1
 affiliations:
- - name: Robotics Innovation Center, DFKI GmbH
+ - name: Robotics Innovation Center, DFKI GmbH, Bremen, Germany
    index: 1
 date: 29 January 2021
 bibliography: paper.bib
