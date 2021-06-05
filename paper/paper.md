@@ -32,11 +32,11 @@ Gaussian mixture model (GMM).
 
 The library gmr is fully compatible with scikit-learn [@Pedregosa2011]. It
 has its own implementation of expectation maximization (EM), but it can also
-be initialized with a GMM from sklearn, which means that we can also initialize
-it from a Bayesian GMM of scikit-learn. The prediction process for regression
-is not available in scikit-learn and, thus, will be provided by gmr.
+be initialized with a GMM from scikit-learn, which means that we can also
+initialize it from a Bayesian GMM of scikit-learn. The prediction process for
+regression is not available in scikit-learn and, thus, will be provided by gmr.
 
-Note that while sklearn has the function GaussianMixture.predict,
+Note that while scikit-learn has the function GaussianMixture.predict,
 it does not perform regression. This function computes the index of the
 Gaussian for which the inputs have the highest probability. Furthermore,
 multimodal regression often requires a more complicated interface to extract
