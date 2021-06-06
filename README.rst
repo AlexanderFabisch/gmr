@@ -175,6 +175,33 @@ API documentation is available
 `here <https://alexanderfabisch.github.io/gmr/>`_.
 
 
+Citation
+--------
+
+If you use the library gmr in a scientific publication, I would appreciate
+citation of the following paper:
+
+Fabisch, A., (2021). gmr: Gaussian Mixture Regression. Journal of Open Source
+Software, 6(62), 3054, https://doi.org/10.21105/joss.03054
+
+Bibtex entry:
+
+.. code-block:: bibtex
+
+    @article{Fabisch2021,
+    doi = {10.21105/joss.03054},
+    url = {https://doi.org/10.21105/joss.03054},
+    year = {2021},
+    publisher = {The Open Journal},
+    volume = {6},
+    number = {62},
+    pages = {3054},
+    author = {Alexander Fabisch},
+    title = {gmr: Gaussian Mixture Regression},
+    journal = {Journal of Open Source Software}
+    }
+
+
 Contributing
 ============
 
