@@ -8,6 +8,10 @@ gmr
    :target: https://travis-ci.org/AlexanderFabisch/gmr
    :alt: Travis
 
+.. image:: https://joss.theoj.org/papers/10.21105/joss.03054/status.svg
+   :target: https://doi.org/10.21105/joss.03054
+   :alt: DOI (JOSS)
+
 .. image:: https://zenodo.org/badge/17119390.svg
    :target: https://zenodo.org/badge/latestdoi/17119390
    :alt: DOI (Zenodo)
