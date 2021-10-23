@@ -653,3 +653,8 @@ def test_from_samples_with_oas():
     for i in range(cond.n_components):
         eigvals = np.linalg.eigvals(cond.covariances[i])
         assert_true(all(eigvals >= 0))
+
+
+def test_is_in_confidence_region_1d():
+    gmm = GMM(n_components=1, priors=[1], means=[[0]], covariances=[[[1]]])
+    assert_true(gmm.is_in_confidence_region([0], 1.0))

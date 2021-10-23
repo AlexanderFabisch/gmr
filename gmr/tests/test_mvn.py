@@ -333,3 +333,8 @@ def test_unscented_transform_quadratic():
         np.array([[3.1, 0.0], [0.0, 3.1]]),
         decimal=1
     )
+
+
+def test_is_in_confidence_region_1d():
+    mvn = MVN(mean=[0.0], covariance=[[1.0]])
+    assert_true(mvn.is_in_confidence_region([0.0], 1.0))
