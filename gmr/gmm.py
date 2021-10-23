@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
-from scipy.stats import chi2
+from scipy.stats import chi2, norm
 from .utils import check_random_state
 from .mvn import MVN, invert_indices, regression_coefficients
 
@@ -375,7 +375,14 @@ class GMM(object):
                  for k in range(self.n_components)]
         # we have one degree of freedom less than number of dimensions
         n_dof = len(x) - 1
-        return min(dists) <= chi2(n_dof).ppf(alpha)
+        if n_dof >= 1:
+            return min(dists) <= chi2(n_dof).ppf(alpha)
+        else:  # 1D
+            idx = np.argmin(dists)
+            lo, hi = norm.interval(
+                alpha, loc=self.means[idx, 0],
+                scale=self.covariances[idx, 0, 0])
+            return lo <= x[0] <= hi
 
     def to_responsibilities(self, X):
         """Compute responsibilities of each MVN for each sample.

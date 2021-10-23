@@ -1,7 +1,7 @@
 import numpy as np
 from .utils import check_random_state
 import scipy as sp
-from scipy.stats import chi2
+from scipy.stats import chi2, norm
 from scipy.spatial.distance import mahalanobis
 from scipy.linalg import pinvh
 
@@ -141,7 +141,12 @@ class MVN(object):
         self._check_initialized()
         # we have one degree of freedom less than number of dimensions
         n_dof = len(x) - 1
-        return self.squared_mahalanobis_distance(x) <= chi2(n_dof).ppf(alpha)
+        if n_dof >= 1:
+            return self.squared_mahalanobis_distance(x) <= chi2(n_dof).ppf(alpha)
+        else:  # 1D
+            lo, hi = norm.interval(
+                alpha, loc=self.mean[0], scale=self.covariance[0, 0])
+            return lo <= x[0] <= hi
 
     def to_norm_factor_and_exponents(self, X):
         """Compute normalization factor and exponents of Gaussian.
