@@ -482,15 +482,15 @@ class GMM(object):
 
         Parameters
         ----------
-        indices : array-like, shape (n_features_1,)
+        indices : array-like, shape (n_features_in,)
             Indices of dimensions that we want to condition.
 
-        X : array-like, shape (n_samples, n_features_1)
+        X : array-like, shape (n_samples, n_features_in)
             Values of the features that we know.
 
         Returns
         -------
-        Y : array, shape (n_samples, n_features_2)
+        Y : array, shape (n_samples, n_features_out)
             Predicted means of missing values.
         """
         self._check_initialized()
