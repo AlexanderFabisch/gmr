@@ -16,6 +16,10 @@ gmr
    :target: https://zenodo.org/badge/latestdoi/17119390
    :alt: DOI (Zenodo)
 
+.. image:: https://codecov.io/gh/AlexanderFabisch/gmr/branch/master/graph/badge.svg?token=R7hSIxb8M2
+   :target: https://codecov.io/gh/AlexanderFabisch/gmr
+   :alt: Coverage
+
 .. image:: https://raw.githubusercontent.com/AlexanderFabisch/gmr/master/gmr.png
 
 `(Source code of example) <https://github.com/AlexanderFabisch/gmr/blob/master/examples/plot_regression.py>`_
