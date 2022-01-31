@@ -262,18 +262,18 @@ class MVN(object):
 
         Parameters
         ----------
-        indices : array-like, shape (n_features_1,)
+        indices : array-like, shape (n_features_in,)
             Indices of dimensions that we want to condition.
 
-        X : array-like, shape (n_samples, n_features_1)
+        X : array-like, shape (n_samples, n_features_in)
             Values of the features that we know.
 
         Returns
         -------
-        Y : array, shape (n_samples, n_features_2)
+        Y : array, shape (n_samples, n_features_out)
             Predicted means of missing values.
 
-        covariance : array, shape (n_features_2, n_features_2)
+        covariance : array, shape (n_features_out, n_features_out)
             Covariance of the predicted features.
         """
         self._check_initialized()
@@ -478,7 +478,7 @@ def plot_error_ellipse(ax, mvn, color=None, alpha=0.25,
         ax.add_artist(ell)
 
 
-def regression_coefficients(covariance, i1, i2, cov_12=None):
+def regression_coefficients(covariance, i_out, i_in, cov_12=None):
     """Compute regression coefficients to predict conditional distribution.
 
     Parameters
@@ -486,31 +486,31 @@ def regression_coefficients(covariance, i1, i2, cov_12=None):
     covariance : array, shape (n_features, n_features)
         Covariance of MVN
 
-    i1 : array, shape (n_features1,)
-        Input feature indices
-
-    i2 : array, shape (n_features2,)
+    i_out : array, shape (n_features_out,)
         Output feature indices
 
-    cov_12 : array, shape (n_features1, n_features2), optional (default: None)
+    i_in : array, shape (n_features_in,)
+        Input feature indices
+
+    cov_12 : array, shape (n_features_out, n_features_in), optional (default: None)
         Precomputed block of the covariance matrix between input features and
         output features
 
     Returns
     -------
-    regression_coeffs : array, shape (n_features1, n_features2)
+    regression_coeffs : array, shape (n_features_out, n_features_in)
         Regression coefficients. These can be used to compute the mean of the
         conditional distribution as
         mean[i1] + regression_coeffs.dot((X - mean[i2]).T).T
     """
     if cov_12 is None:
-        cov_12 = covariance[np.ix_(i1, i2)]
-    cov_22 = covariance[np.ix_(i2, i2)]
+        cov_12 = covariance[np.ix_(i_out, i_in)]
+    cov_22 = covariance[np.ix_(i_in, i_in)]
     prec_22 = pinvh(cov_22)
     return cov_12.dot(prec_22)
 
 
-def condition(mean, covariance, i1, i2, X):
+def condition(mean, covariance, i_out, i_in, X):
     """Compute conditional mean and covariance.
 
     Parameters
@@ -521,28 +521,28 @@ def condition(mean, covariance, i1, i2, X):
     covariance : array, shape (n_features, n_features)
         Covariance of MVN
 
-    i1 : array, shape (n_features1,)
-        Input feature indices
-
-    i2 : array, shape (n_features2,)
+    i_out : array, shape (n_features_out,)
         Output feature indices
 
-    X : array, shape (n_samples, n_features1)
+    i_in : array, shape (n_features_in,)
+        Input feature indices
+
+    X : array, shape (n_samples, n_features_out)
         Inputs
 
     Returns
     -------
-    mean : array, shape (n_features2,)
+    mean : array, shape (n_features_out,)
         Mean of the conditional distribution
 
-    covariance : array, shape (n_features2, n_features2)
+    covariance : array, shape (n_features_out, n_features_out)
         Covariance of the conditional distribution
     """
-    cov_12 = covariance[np.ix_(i1, i2)]
-    cov_11 = covariance[np.ix_(i1, i1)]
+    cov_12 = covariance[np.ix_(i_out, i_in)]
+    cov_11 = covariance[np.ix_(i_out, i_out)]
     regression_coeffs = regression_coefficients(
-        covariance, i1, i2, cov_12=cov_12)
+        covariance, i_out, i_in, cov_12=cov_12)
 
-    mean = mean[i1] + regression_coeffs.dot((X - mean[i2]).T).T
+    mean = mean[i_out] + regression_coeffs.dot((X - mean[i_in]).T).T
     covariance = cov_11 - regression_coeffs.dot(cov_12.T)
     return mean, covariance
