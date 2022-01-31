@@ -4,7 +4,7 @@ from scipy.spatial.distance import pdist
 from gmr.utils import check_random_state
 from nose.tools import (assert_equal, assert_less, assert_raises, assert_in,
                         assert_false, assert_true)
-from nose.plugins.skip import SkipTest
+from nose import SkipTest
 from numpy.testing import assert_array_almost_equal
 try:
     # Python 2
@@ -311,7 +311,10 @@ def test_plot():
               covariances=covariances, random_state=0)
 
     ax = AxisStub()
-    plot_error_ellipses(ax, gmm)
+    try:
+        plot_error_ellipses(ax, gmm)
+    except ImportError:
+        raise SkipTest("matplotlib is required for this test")
     assert_equal(ax.count, 16)
 
     ax = AxisStub()

@@ -1,6 +1,7 @@
 import numpy as np
 from gmr.utils import check_random_state
 from nose.tools import assert_equal, assert_less, assert_raises, assert_true, assert_false, assert_almost_equal
+from nose import SkipTest
 from numpy.testing import assert_array_almost_equal
 from gmr import MVN, plot_error_ellipse
 
@@ -225,7 +226,10 @@ def test_plot():
     mvn = MVN(mean=mean, covariance=covariance, random_state=random_state)
 
     ax = AxisStub()
-    plot_error_ellipse(ax, mvn)
+    try:
+        plot_error_ellipse(ax, mvn)
+    except ImportError:
+        raise SkipTest("matplotlib is required for this test")
     assert_equal(ax.count, 8)
     plot_error_ellipse(ax, mvn, color="r")
     assert_equal(ax.count, 16)
