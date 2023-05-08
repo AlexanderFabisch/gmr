@@ -461,7 +461,7 @@ def plot_error_ellipse(ax, mvn, color=None, alpha=0.25,
     color : str, optional (default: None)
         Color in which the ellipse should be plotted
 
-    alpha : int, optional (default: 0.25)
+    alpha : float, optional (default: 0.25)
         Alpha value for ellipse
 
     factors : array, optional (default: np.linspace(0.25, 2.0, 8))

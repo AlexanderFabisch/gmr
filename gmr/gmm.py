@@ -609,7 +609,7 @@ def plot_error_ellipses(ax, gmm, colors=None, alpha=0.25, factors=np.linspace(0.
     colors : list of str, optional (default: None)
         Colors in which the ellipses should be plotted
 
-    alpha : int, optional (default: 0.25)
+    alpha : float, optional (default: 0.25)
         Alpha value for ellipses
 
     factors : array, optional (default: np.linspace(0.25, 2.0, 8))
