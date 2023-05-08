@@ -4,10 +4,6 @@ gmr
 
     Gaussian Mixture Models (GMMs) for clustering and regression in Python.
 
-.. image:: https://api.travis-ci.org/AlexanderFabisch/gmr.png?branch=master
-   :target: https://travis-ci.org/AlexanderFabisch/gmr
-   :alt: Travis
-
 .. image:: https://codecov.io/gh/AlexanderFabisch/gmr/branch/master/graph/badge.svg?token=R7hSIxb8M2
    :target: https://codecov.io/gh/AlexanderFabisch/gmr
    :alt: Coverage
