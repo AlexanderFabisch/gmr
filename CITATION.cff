@@ -3,6 +3,7 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: Fabisch
   given-names: Alexander
+  orcid: https://orcid.org/0000-0003-2824-7956
 title: "gmr"
 url: https://github.com/AlexanderFabisch/gmr
 doi: 10.5281/zenodo.4449631
@@ -11,6 +12,7 @@ preferred-citation:
     authors:
     - family-names: Fabisch
       given-names: Alexander
+      orcid: https://orcid.org/0000-0003-2824-7956
     title: "gmr: Gaussian Mixture Regression"
     doi: 10.21105/joss.03054
     journal: Journal of Open Source Software
