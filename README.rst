@@ -232,10 +232,10 @@ install all dependencies:
 
 You can now run tests with
 
-    nosetests --with-coverage
+    pytest
 
-The option `--with-coverage` will print a coverage report and output an
-HTML overview to the folder `cover/`.
+This will also generate a coverage report and output an HTML overview to
+the folder `htmlcov/`.
 
 Generate Documentation
 ----------------------
