@@ -1,8 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 from gmr.utils import check_random_state
-from nose.tools import assert_less, assert_greater
-from nose.plugins.skip import SkipTest
 
 
 def test_sklearn_regression():
@@ -10,7 +8,7 @@ def test_sklearn_regression():
     try:
         from gmr.sklearn import GaussianMixtureRegressor
     except ImportError:
-        raise SkipTest("sklearn is not available")
+        pytest.skip("sklearn is not available")
 
     random_state = check_random_state(0)
 
@@ -29,7 +27,7 @@ def test_sklearn_regression():
 
     pred = gmr.predict(x)
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_less(mse, 0.01)
+    assert mse < 0.01
 
 
 def test_sklearn_regression_with_2d_input():
@@ -37,7 +35,7 @@ def test_sklearn_regression_with_2d_input():
     try:
         from gmr.sklearn import GaussianMixtureRegressor
     except ImportError:
-        raise SkipTest("sklearn is not available")
+        pytest.skip("sklearn is not available")
 
     random_state = check_random_state(0)
 
@@ -53,7 +51,7 @@ def test_sklearn_regression_with_2d_input():
 
     pred = gmr.predict(x)
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_less(mse, 0.01)
+    assert mse < 0.01
 
 
 def test_sklearn_regression_with_1d_output():
@@ -61,7 +59,7 @@ def test_sklearn_regression_with_1d_output():
     try:
         from gmr.sklearn import GaussianMixtureRegressor
     except ImportError:
-        raise SkipTest("sklearn is not available")
+        pytest.skip("sklearn is not available")
 
     random_state = check_random_state(0)
 
@@ -75,7 +73,7 @@ def test_sklearn_regression_with_1d_output():
 
     pred = gmr.predict(x)
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_greater(mse, 0.01)
+    assert mse > 0.01
 
 
 def test_sklearn_regression_without_noise():
@@ -83,7 +81,7 @@ def test_sklearn_regression_without_noise():
     try:
         from gmr.sklearn import GaussianMixtureRegressor
     except ImportError:
-        raise SkipTest("sklearn is not available")
+        pytest.skip("sklearn is not available")
 
     random_state = 0
 
@@ -101,4 +99,4 @@ def test_sklearn_regression_without_noise():
 
     pred = gmr.predict(x)
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_less(mse, 0.01)
+    assert mse < 0.01
