@@ -31,7 +31,7 @@ mean, covariance = mvn.predict(np.array([0]), X_test[:, np.newaxis])
 plt.figure(figsize=(10, 5))
 
 plt.subplot(1, 2, 1)
-plt.title("Linear: $p(Y | X) = \mathcal{N}(\mu_{Y|X}, \Sigma_{Y|X})$")
+plt.title(r"Linear: $p(Y | X) = \mathcal{N}(\mu_{Y|X}, \Sigma_{Y|X})$")
 plt.scatter(X[:, 0], X[:, 1])
 y = mean.ravel()
 s = 1.96 * np.sqrt(covariance.ravel())  # interval covers 95% of the data
@@ -48,8 +48,8 @@ gmm.from_samples(X)
 Y = gmm.predict(np.array([0]), X_test[:, np.newaxis])
 
 plt.subplot(1, 2, 2)
-plt.title("Mixture of Experts: $p(Y | X) = \Sigma_k \pi_{k, Y|X} "
-          "\mathcal{N}_{k, Y|X}$")
+plt.title(r"Mixture of Experts: $p(Y | X) = \Sigma_k \pi_{k, Y|X} "
+          r"\mathcal{N}_{k, Y|X}$")
 plt.scatter(X[:, 0], X[:, 1])
 plot_error_ellipses(plt.gca(), gmm, colors=["r", "g", "b"])
 plt.plot(X_test, Y.ravel(), c="k", lw=2)
