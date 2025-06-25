@@ -104,9 +104,6 @@ def test_initialize_2d_covariance():
 
 def test_estimate_moments():
     """Test moments estimated from samples and sampling from GMM."""
-    global X
-    global random_state
-
     gmm = GMM(n_components=2, random_state=random_state)
     gmm.from_samples(X)
     assert_less(np.linalg.norm(gmm.means[0] - means[0]), 0.005)
@@ -114,10 +111,10 @@ def test_estimate_moments():
     assert_less(np.linalg.norm(gmm.means[1] - means[1]), 0.01)
     assert_less(np.linalg.norm(gmm.covariances[1] - covariances[1]), 0.03)
 
-    X = gmm.sample(n_samples=100000)
+    X_sampled = gmm.sample(n_samples=100000)
 
     gmm = GMM(n_components=2, random_state=random_state)
-    gmm.from_samples(X)
+    gmm.from_samples(X_sampled)
     assert_less(np.linalg.norm(gmm.means[0] - means[0]), 0.01)
     assert_less(np.linalg.norm(gmm.covariances[0] - covariances[0]), 0.03)
     assert_less(np.linalg.norm(gmm.means[1] - means[1]), 0.01)
@@ -125,11 +122,6 @@ def test_estimate_moments():
 
 
 def test_estimation_from_previous_initialization():
-    global X
-    global random_state
-    global means
-    global covariances
-
     gmm = GMM(n_components=2, priors=0.5 * np.ones(2), means=np.copy(means),
               covariances=np.copy(covariances),
               random_state=check_random_state(2))
@@ -142,9 +134,6 @@ def test_estimation_from_previous_initialization():
 
 def test_probability_density():
     """Test PDF of GMM."""
-    global X
-    global random_state
-
     gmm = GMM(n_components=2, random_state=random_state)
     gmm.from_samples(X)
 
@@ -324,7 +313,6 @@ def test_plot():
 
 def test_verbose_from_samples():
     """Test verbose output."""
-    global X
     random_state = check_random_state(0)
 
     old_stdout = sys.stdout
