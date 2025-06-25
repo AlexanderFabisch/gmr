@@ -51,7 +51,7 @@ def setup_package():
         install_requires=["numpy", "scipy"],
         extras_require={
             "all": ["matplotlib", "scikit-learn", "svgpathtools"],
-            "test": ["nose", "coverage"],
+            "test": ["pytest", "pytest-cov"],
             "doc": ["pdoc3"],
         }
     )
