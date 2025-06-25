@@ -1,7 +1,6 @@
 import numpy as np
 from gmr.utils import check_random_state
-from nose.tools import assert_equal, assert_less, assert_raises, assert_true, assert_false, assert_almost_equal
-from nose import SkipTest
+import pytest
 from numpy.testing import assert_array_almost_equal
 from gmr import MVN, plot_error_ellipse
 
@@ -29,15 +28,15 @@ def test_estimate_moments():
                                          size=(100000,))
     mvn = MVN(random_state=random_state)
     mvn.from_samples(X)
-    assert_less(np.linalg.norm(mvn.mean - actual_mean), 0.02)
-    assert_less(np.linalg.norm(mvn.covariance - actual_covariance), 0.02)
+    assert np.linalg.norm(mvn.mean - actual_mean) < 0.02
+    assert np.linalg.norm(mvn.covariance - actual_covariance) < 0.02
 
     X2 = mvn.sample(n_samples=100000)
 
     mvn2 = MVN(random_state=random_state)
     mvn2.from_samples(X2)
-    assert_less(np.linalg.norm(mvn2.mean - actual_mean), 0.03)
-    assert_less(np.linalg.norm(mvn2.covariance - actual_covariance), 0.03)
+    assert np.linalg.norm(mvn2.mean - actual_mean) < 0.03
+    assert np.linalg.norm(mvn2.covariance - actual_covariance) < 0.03
 
 
 def test_in_confidence_region():
@@ -48,19 +47,19 @@ def test_in_confidence_region():
     alpha_1sigma = 0.6827
     alpha_2sigma = 0.9545
 
-    assert_true(mvn.is_in_confidence_region(mvn.mean, alpha_1sigma))
-    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([1.0, 0.0]), alpha_1sigma))
-    assert_false(mvn.is_in_confidence_region(mvn.mean + np.array([1.001, 0.0]), alpha_1sigma))
+    assert mvn.is_in_confidence_region(mvn.mean, alpha_1sigma)
+    assert mvn.is_in_confidence_region(mvn.mean + np.array([1.0, 0.0]), alpha_1sigma)
+    assert not mvn.is_in_confidence_region(mvn.mean + np.array([1.001, 0.0]), alpha_1sigma)
 
-    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([2.0, 0.0]), alpha_2sigma))
-    assert_false(mvn.is_in_confidence_region(mvn.mean + np.array([3.0, 0.0]), alpha_2sigma))
+    assert mvn.is_in_confidence_region(mvn.mean + np.array([2.0, 0.0]), alpha_2sigma)
+    assert not mvn.is_in_confidence_region(mvn.mean + np.array([3.0, 0.0]), alpha_2sigma)
 
-    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 1.0]), alpha_1sigma))
-    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 2.0]), alpha_1sigma))
-    assert_false(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 3.0]), alpha_1sigma))
+    assert mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 1.0]), alpha_1sigma)
+    assert mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 2.0]), alpha_1sigma)
+    assert not mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 3.0]), alpha_1sigma)
 
-    assert_true(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 4.0]), alpha_2sigma))
-    assert_false(mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 4.001]), alpha_2sigma))
+    assert mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 4.0]), alpha_2sigma)
+    assert not mvn.is_in_confidence_region(mvn.mean + np.array([0.0, 4.001]), alpha_2sigma)
 
 
 def test_sample_confidence_region():
@@ -71,7 +70,7 @@ def test_sample_confidence_region():
               random_state=random_state)
     samples = mvn.sample_confidence_region(100, 0.9)
     for sample in samples:
-        assert_true(mvn.is_in_confidence_region(sample, 0.9))
+        assert mvn.is_in_confidence_region(sample, 0.9)
 
 
 def test_probability_density():
@@ -83,7 +82,7 @@ def test_probability_density():
     X = np.vstack(list(map(np.ravel, np.meshgrid(x, x)))).T
     p = mvn.to_probability_density(X)
     approx_int = np.sum(p) * ((x[-1] - x[0]) / 201) ** 2
-    assert_less(np.abs(1.0 - approx_int), 0.01)
+    assert np.abs(1.0 - approx_int) < 0.01
 
 
 def test_probability_density_without_noise():
@@ -98,10 +97,10 @@ def test_probability_density_without_noise():
     mvn = MVN(random_state=random_state)
     mvn.from_samples(samples)
     assert_array_almost_equal(mvn.mean, np.array([0.5, 1.0]), decimal=2)
-    assert_equal(mvn.covariance[1, 1], 0.0)
+    assert mvn.covariance[1, 1] == 0.0
     p_training = mvn.to_probability_density(samples)
     p_test = mvn.to_probability_density(samples + 1)
-    assert_true(np.all(p_training > p_test))
+    assert np.all(p_training > p_test)
 
 
 def test_marginal_distribution():
@@ -110,11 +109,11 @@ def test_marginal_distribution():
     mvn = MVN(mean=mean, covariance=covariance, random_state=random_state)
 
     marginalized = mvn.marginalize(np.array([0]))
-    assert_equal(marginalized.mean, np.array([0.0]))
-    assert_equal(marginalized.covariance, np.array([0.5]))
+    assert marginalized.mean == np.array([0.0])
+    assert marginalized.covariance == np.array([0.5])
     marginalized = mvn.marginalize(np.array([1]))
-    assert_equal(marginalized.mean, np.array([1.0]))
-    assert_equal(marginalized.covariance, np.array([5.0]))
+    assert marginalized.mean == np.array([1.0])
+    assert marginalized.covariance == np.array([5.0])
 
 
 def test_conditional_distribution():
@@ -126,11 +125,11 @@ def test_conditional_distribution():
     mvn = MVN(mean=mean, covariance=covariance, random_state=random_state)
 
     conditional = mvn.condition(np.array([1]), np.array([5.0]))
-    assert_equal(conditional.mean, np.array([0.0]))
-    assert_equal(conditional.covariance, np.array([0.5]))
+    assert conditional.mean == np.array([0.0])
+    assert conditional.covariance == np.array([0.5])
     conditional = mvn.condition(np.array([0]), np.array([0.5]))
-    assert_equal(conditional.mean, np.array([1.0]))
-    assert_equal(conditional.covariance, np.array([5.0]))
+    assert conditional.mean == np.array([1.0])
+    assert conditional.covariance == np.array([5.0])
 
 
 def test_ellipse():
@@ -142,9 +141,9 @@ def test_ellipse():
     mvn = MVN(mean=mean, covariance=covariance, random_state=random_state)
 
     angle, width, height = mvn.to_ellipse()
-    assert_equal(angle, 0.5 * np.pi)
-    assert_equal(width, np.sqrt(5.0))
-    assert_equal(height, np.sqrt(0.5))
+    assert angle == 0.5 * np.pi
+    assert width == np.sqrt(5.0)
+    assert height == np.sqrt(0.5)
 
 
 def test_regression():
@@ -164,8 +163,8 @@ def test_regression():
 
     pred, cov = mvn.predict(np.array([0]), x)
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_less(mse, 1e-3)
-    assert_less(cov[0, 0], 0.01)
+    assert mse < 1e-3
+    assert cov[0, 0] < 0.01
 
 
 def test_regression_with_2d_input():
@@ -186,8 +185,8 @@ def test_regression_with_2d_input():
     x_test = np.hstack((x, x[::-1]))
     pred, cov = mvn.predict(np.array([0, 1]), x_test)
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_less(mse, 1e-3)
-    assert_less(cov[0, 0], 0.01)
+    assert mse < 1e-3
+    assert cov[0, 0] < 0.01
 
 
 def test_regression_without_noise():
@@ -205,19 +204,19 @@ def test_regression_without_noise():
 
     pred, cov = mvn.predict(np.array([0]), x)
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_less(mse, 1e-10)
-    assert_less(cov[0, 0], 1e-10)
+    assert mse < 1e-10
+    assert cov[0, 0] < 1e-10
 
 
 def test_squared_mahalanobis_distance():
     """Test Mahalanobis distance."""
     mvn = MVN(mean=np.zeros(2), covariance=np.eye(2))
-    assert_almost_equal(np.sqrt(mvn.squared_mahalanobis_distance(np.zeros(2))), 0.0)
-    assert_almost_equal(np.sqrt(mvn.squared_mahalanobis_distance(np.array([0, 1]))), 1.0)
+    assert np.sqrt(mvn.squared_mahalanobis_distance(np.zeros(2))) == pytest.approx(0.0)
+    assert np.sqrt(mvn.squared_mahalanobis_distance(np.array([0, 1]))) == pytest.approx(1.0)
 
     mvn = MVN(mean=np.zeros(2), covariance=4.0 * np.eye(2))
-    assert_almost_equal(np.sqrt(mvn.squared_mahalanobis_distance(np.array([2, 0]))), 1.0)
-    assert_almost_equal(np.sqrt(mvn.squared_mahalanobis_distance(np.array([2, 2]))), np.sqrt(2))
+    assert np.sqrt(mvn.squared_mahalanobis_distance(np.array([2, 0]))) == pytest.approx(1.0)
+    assert np.sqrt(mvn.squared_mahalanobis_distance(np.array([2, 2]))) == pytest.approx(np.sqrt(2))
 
 
 def test_plot():
@@ -229,29 +228,41 @@ def test_plot():
     try:
         plot_error_ellipse(ax, mvn)
     except ImportError:
-        raise SkipTest("matplotlib is required for this test")
-    assert_equal(ax.count, 8)
+        pytest.skip("matplotlib is required for this test")
+    assert ax.count == 8
     plot_error_ellipse(ax, mvn, color="r")
-    assert_equal(ax.count, 16)
+    assert ax.count == 16
 
 
 def test_uninitialized():
     """Test behavior of uninitialized MVN."""
     random_state = check_random_state(0)
     mvn = MVN(random_state=random_state)
-    assert_raises(ValueError, mvn.sample, 10)
-    assert_raises(ValueError, mvn.to_probability_density, np.ones((1, 1)))
-    assert_raises(ValueError, mvn.marginalize, np.zeros(0))
-    assert_raises(ValueError, mvn.condition, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, mvn.predict, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, mvn.to_ellipse)
+    with pytest.raises(ValueError):
+        mvn.sample(10)
+    with pytest.raises(ValueError):
+        mvn.to_probability_density(np.ones((1, 1)))
+    with pytest.raises(ValueError):
+        mvn.marginalize(np.zeros(0))
+    with pytest.raises(ValueError):
+        mvn.condition(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        mvn.predict(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        mvn.to_ellipse()
     mvn = MVN(mean=np.ones(2), random_state=random_state)
-    assert_raises(ValueError, mvn.sample, 10)
-    assert_raises(ValueError, mvn.to_probability_density, np.ones((1, 1)))
-    assert_raises(ValueError, mvn.marginalize, np.zeros(0))
-    assert_raises(ValueError, mvn.condition, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, mvn.predict, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, mvn.to_ellipse)
+    with pytest.raises(ValueError):
+        mvn.sample(10)
+    with pytest.raises(ValueError):
+        mvn.to_probability_density(np.ones((1, 1)))
+    with pytest.raises(ValueError):
+        mvn.marginalize(np.zeros(0))
+    with pytest.raises(ValueError):
+        mvn.condition(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        mvn.predict(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        mvn.to_ellipse()
 
 
 def test_unscented_transform_linear_transformation():
@@ -341,4 +352,4 @@ def test_unscented_transform_quadratic():
 
 def test_is_in_confidence_region_1d():
     mvn = MVN(mean=[0.0], covariance=[[1.0]])
-    assert_true(mvn.is_in_confidence_region([0.0], 1.0))
+    assert mvn.is_in_confidence_region([0.0], 1.0)
