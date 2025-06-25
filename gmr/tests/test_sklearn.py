@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_almost_equal
+import pytest
 from gmr.utils import check_random_state
 
 
