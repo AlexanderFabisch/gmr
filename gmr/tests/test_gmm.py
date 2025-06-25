@@ -2,9 +2,7 @@ import sys
 import numpy as np
 from scipy.spatial.distance import pdist
 from gmr.utils import check_random_state
-from nose.tools import (assert_equal, assert_less, assert_raises, assert_in,
-                        assert_false, assert_true)
-from nose import SkipTest
+import pytest
 from numpy.testing import assert_array_almost_equal
 try:
     # Python 2
@@ -30,12 +28,14 @@ X = np.vstack((X1, X2))
 
 def test_kmeanspp_too_few_centers():
     X = np.array([[0.0, 1.0]])
-    assert_raises(ValueError, kmeansplusplus_initialization, X, 0, 0)
+    with pytest.raises(ValueError):
+        kmeansplusplus_initialization(X, 0, 0)
 
 
 def test_kmeanspp_too_many_centers():
     X = np.array([[0.0, 1.0]])
-    assert_raises(ValueError, kmeansplusplus_initialization, X, 2, 0)
+    with pytest.raises(ValueError):
+        kmeansplusplus_initialization(X, 2, 0)
 
 
 def test_kmeanspp_one_sample():
@@ -47,15 +47,15 @@ def test_kmeanspp_one_sample():
 def test_kmeanspp_two_samples():
     X = np.array([[0.0, 1.0], [1.0, 0.0]])
     centers = kmeansplusplus_initialization(X, 1, 0)
-    assert_in(centers[0], X)
+    assert centers[0] in X
 
 
 def test_kmeanspp_two_samples_two_centers():
     X = np.array([[0.0, 1.0], [1.0, 0.0]])
     centers = kmeansplusplus_initialization(X, 2, 0)
-    assert_in(centers[0], X)
-    assert_in(centers[1], X)
-    assert_false(centers[0, 0] == centers[1, 0])
+    assert centers[0] in X
+    assert centers[1] in X
+    assert centers[0, 0] != centers[1, 0]
 
 
 def test_kmeanspp_six_samples_three_centers():
@@ -67,10 +67,10 @@ def test_kmeanspp_six_samples_three_centers():
         [100.0, 0.0],
         [0.0, 100.0]])
     centers = kmeansplusplus_initialization(X, 3, 0)
-    assert_equal(len(centers), 3)
-    assert_in(np.array([100.0, 0.0]), centers)
-    assert_in(np.array([0.0, 100.0]), centers)
-    assert_true(
+    assert len(centers) == 3
+    assert np.array([100.0, 0.0]) in centers
+    assert np.array([0.0, 100.0]) in centers
+    assert (
         X[0] in centers or
         X[1] in centers or
         X[2] in centers or
@@ -79,26 +79,25 @@ def test_kmeanspp_six_samples_three_centers():
 
 
 def test_initialize_no_covariance():
-    assert_raises(
-        ValueError, covariance_initialization,
-        np.array([[0, 1], [2, 3]]), 0)
+    with pytest.raises(ValueError):
+        covariance_initialization(np.array([[0, 1], [2, 3]]), 0)
 
 
 def test_initialize_one_covariance():
     cov = covariance_initialization(np.array([[0], [1]]), 1)
-    assert_equal(len(cov), 1)
+    assert len(cov) == 1
     assert_array_almost_equal(cov, np.array([[[1.0]]]))
 
 
 def test_initialize_two_covariances():
     cov = covariance_initialization(np.array([[0], [1], [2]]), 2)
-    assert_equal(len(cov), 2)
+    assert len(cov) == 2
     assert_array_almost_equal(cov, np.array([[[2.0 / 3.0]], [[2.0 / 3.0]]]) ** 2)
 
 
 def test_initialize_2d_covariance():
     cov = covariance_initialization(np.array([[0, 0], [3, 4]]), 1)
-    assert_equal(len(cov), 1)
+    assert len(cov) == 1
     assert_array_almost_equal(cov, np.array([[[9.0, 0.0], [0.0, 16.0]]]))
 
 
@@ -106,19 +105,19 @@ def test_estimate_moments():
     """Test moments estimated from samples and sampling from GMM."""
     gmm = GMM(n_components=2, random_state=random_state)
     gmm.from_samples(X)
-    assert_less(np.linalg.norm(gmm.means[0] - means[0]), 0.005)
-    assert_less(np.linalg.norm(gmm.covariances[0] - covariances[0]), 0.01)
-    assert_less(np.linalg.norm(gmm.means[1] - means[1]), 0.01)
-    assert_less(np.linalg.norm(gmm.covariances[1] - covariances[1]), 0.03)
+    assert np.linalg.norm(gmm.means[0] - means[0]) < 0.005
+    assert np.linalg.norm(gmm.covariances[0] - covariances[0]) < 0.01
+    assert np.linalg.norm(gmm.means[1] - means[1]) < 0.01
+    assert np.linalg.norm(gmm.covariances[1] - covariances[1]) < 0.03
 
     X_sampled = gmm.sample(n_samples=100000)
 
     gmm = GMM(n_components=2, random_state=random_state)
     gmm.from_samples(X_sampled)
-    assert_less(np.linalg.norm(gmm.means[0] - means[0]), 0.01)
-    assert_less(np.linalg.norm(gmm.covariances[0] - covariances[0]), 0.03)
-    assert_less(np.linalg.norm(gmm.means[1] - means[1]), 0.01)
-    assert_less(np.linalg.norm(gmm.covariances[1] - covariances[1]), 0.04)
+    assert np.linalg.norm(gmm.means[0] - means[0]) < 0.01
+    assert np.linalg.norm(gmm.covariances[0] - covariances[0]) < 0.03
+    assert np.linalg.norm(gmm.means[1] - means[1]) < 0.01
+    assert np.linalg.norm(gmm.covariances[1] - covariances[1]) < 0.04
 
 
 def test_estimation_from_previous_initialization():
@@ -126,10 +125,10 @@ def test_estimation_from_previous_initialization():
               covariances=np.copy(covariances),
               random_state=check_random_state(2))
     gmm.from_samples(X, n_iter=2)
-    assert_less(np.linalg.norm(gmm.means[0] - means[0]), 0.01)
-    assert_less(np.linalg.norm(gmm.covariances[0] - covariances[0]), 0.03)
-    assert_less(np.linalg.norm(gmm.means[1] - means[1]), 0.01)
-    assert_less(np.linalg.norm(gmm.covariances[1] - covariances[1]), 0.04)
+    assert np.linalg.norm(gmm.means[0] - means[0]) < 0.01
+    assert np.linalg.norm(gmm.covariances[0] - covariances[0]) < 0.03
+    assert np.linalg.norm(gmm.means[1] - means[1]) < 0.01
+    assert np.linalg.norm(gmm.covariances[1] - covariances[1]) < 0.04
 
 
 def test_probability_density():
@@ -141,7 +140,7 @@ def test_probability_density():
     X_grid = np.vstack(list(map(np.ravel, np.meshgrid(x, x)))).T
     p = gmm.to_probability_density(X_grid)
     approx_int = np.sum(p) * ((x[-1] - x[0]) / 201) ** 2
-    assert_less(np.abs(1.0 - approx_int), 0.01)
+    assert np.abs(1.0 - approx_int) < 0.01
 
 
 def test_conditional_distribution():
@@ -172,7 +171,7 @@ def test_sample_confidence_region():
               covariances=covariances, random_state=random_state)
     samples = gmm.sample_confidence_region(100, 0.7)
     for sample in samples:
-        assert_true(gmm.is_in_confidence_region(sample, 0.7))
+        assert gmm.is_in_confidence_region(sample, 0.7)
 
 
 def test_ellipses():
@@ -190,15 +189,15 @@ def test_ellipses():
 
     mean, (angle, width, height) = ellipses[0]
     assert_array_almost_equal(means[0], mean)
-    assert_equal(angle, 0.5 * np.pi)
-    assert_equal(width, np.sqrt(5.0))
-    assert_equal(height, np.sqrt(0.5))
+    assert angle == 0.5 * np.pi
+    assert width == np.sqrt(5.0)
+    assert height == np.sqrt(0.5)
 
     mean, (angle, width, height) = ellipses[1]
     assert_array_almost_equal(means[1], mean)
-    assert_equal(angle, -np.pi)
-    assert_equal(width, np.sqrt(5.0))
-    assert_equal(height, np.sqrt(0.5))
+    assert angle == -np.pi
+    assert width == np.sqrt(5.0)
+    assert height == np.sqrt(0.5)
 
 
 def test_regression():
@@ -221,7 +220,7 @@ def test_regression():
 
     pred = gmm.predict(np.array([0]), x)
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_less(mse, 0.01)
+    assert mse < 0.01
 
 
 def test_regression_with_2d_input():
@@ -240,7 +239,7 @@ def test_regression_with_2d_input():
 
     pred = gmm.predict(np.array([0, 1]), np.hstack((x, x[::-1])))
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_less(mse, 0.01)
+    assert mse < 0.01
 
 
 def test_regression_with_2d_output():
@@ -261,7 +260,7 @@ def test_regression_with_2d_output():
 
     pred = gmm.predict(np.array([0]), x)
     mse = np.sum((Y - pred) ** 2) / n_samples
-    assert_less(mse, 0.01)
+    assert mse < 0.01
 
 
 def test_regression_without_noise():
@@ -283,7 +282,7 @@ def test_regression_without_noise():
 
     pred = gmm.predict(np.array([0]), x)
     mse = np.sum((y - pred) ** 2) / n_samples
-    assert_less(mse, 0.01)
+    assert mse < 0.01
 
 
 def test_regression_with_custom_mean_covar_as_lists():
@@ -303,12 +302,12 @@ def test_plot():
     try:
         plot_error_ellipses(ax, gmm)
     except ImportError:
-        raise SkipTest("matplotlib is required for this test")
-    assert_equal(ax.count, 16)
+        pytest.skip("matplotlib is required for this test")
+    assert ax.count == 16
 
     ax = AxisStub()
     plot_error_ellipses(ax, gmm, colors=["r", "g"])
-    assert_equal(ax.count, 16)
+    assert ax.count == 16
 
 
 def test_verbose_from_samples():
@@ -332,31 +331,46 @@ def test_uninitialized():
     """Test behavior of uninitialized GMM."""
     random_state = check_random_state(0)
     gmm = GMM(n_components=2, random_state=random_state)
-    assert_raises(ValueError, gmm.sample, 10)
-    assert_raises(ValueError, gmm.to_probability_density, np.ones((1, 1)))
-    assert_raises(ValueError, gmm.condition, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, gmm.predict, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, gmm.to_ellipses)
+    with pytest.raises(ValueError):
+        gmm.sample(10)
+    with pytest.raises(ValueError):
+        gmm.to_probability_density(np.ones((1, 1)))
+    with pytest.raises(ValueError):
+        gmm.condition(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        gmm.predict(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        gmm.to_ellipses()
     gmm = GMM(n_components=2, priors=np.ones(2), random_state=random_state)
-    assert_raises(ValueError, gmm.sample, 10)
-    assert_raises(ValueError, gmm.to_probability_density, np.ones((1, 1)))
-    assert_raises(ValueError, gmm.condition, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, gmm.predict, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, gmm.to_ellipses)
+    with pytest.raises(ValueError):
+        gmm.sample(10)
+    with pytest.raises(ValueError):
+        gmm.to_probability_density(np.ones((1, 1)))
+    with pytest.raises(ValueError):
+        gmm.condition(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        gmm.predict(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        gmm.to_ellipses()
     gmm = GMM(n_components=2, priors=np.ones(2), means=np.zeros((2, 2)),
               random_state=random_state)
-    assert_raises(ValueError, gmm.sample, 10)
-    assert_raises(ValueError, gmm.to_probability_density, np.ones((1, 1)))
-    assert_raises(ValueError, gmm.condition, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, gmm.predict, np.zeros(0), np.zeros(0))
-    assert_raises(ValueError, gmm.to_ellipses)
+    with pytest.raises(ValueError):
+        gmm.sample(10)
+    with pytest.raises(ValueError):
+        gmm.to_probability_density(np.ones((1, 1)))
+    with pytest.raises(ValueError):
+        gmm.condition(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        gmm.predict(np.zeros(0), np.zeros(0))
+    with pytest.raises(ValueError):
+        gmm.to_ellipses()
 
 
 def test_float_precision_error():
     try:
         from sklearn.datasets import load_boston
     except ImportError:
-        raise SkipTest("sklearn is not available")
+        pytest.skip("sklearn is not available")
 
     boston = load_boston()
     X, y = boston.data, boston.target
@@ -386,9 +400,9 @@ def test_numerically_robust_responsibilities():
     gmm = GMM(n_components=3, random_state=random_state)
     gmm.from_samples(X, init_params="random")
     mean_dists = pdist(gmm.means)
-    assert_true(all(mean_dists > 1))
-    assert_true(all(1e7 < gmm.covariances[:, 1, 1]))
-    assert_true(all(gmm.covariances[:, 1, 1] < 1e9))
+    assert all(mean_dists > 1)
+    assert all(1e7 < gmm.covariances[:, 1, 1])
+    assert all(gmm.covariances[:, 1, 1] < 1e9)
 
 
 def test_kmeanspp_initialization():
@@ -424,12 +438,13 @@ def test_kmeanspp_initialization():
     average_widths_kmeanspp = np.mean(pdist(widths))
 
     # random initialization produces uneven covariance scaling
-    assert_less(average_widths_kmeanspp, average_widths_random)
+    assert average_widths_kmeanspp < average_widths_random
 
 
 def test_unknown_initialization():
     gmm = GMM(n_components=3, random_state=0)
-    assert_raises(ValueError, gmm.from_samples, X, init_params="unknown")
+    with pytest.raises(ValueError):
+        gmm.from_samples(X, init_params="unknown")
 
 
 def test_mvn_to_mvn():
@@ -470,13 +485,15 @@ def test_gmm_to_mvn_vs_mvn():
 def test_extract_mvn_negative_idx():
     gmm = GMM(n_components=2, priors=0.5 * np.ones(2), means=np.zeros((2, 2)),
               covariances=[np.eye(2)] * 2)
-    assert_raises(ValueError, gmm.extract_mvn, -1)
+    with pytest.raises(ValueError):
+        gmm.extract_mvn(-1)
 
 
 def test_extract_mvn_idx_too_high():
     gmm = GMM(n_components=2, priors=0.5 * np.ones(2), means=np.zeros((2, 2)),
               covariances=[np.eye(2)] * 2)
-    assert_raises(ValueError, gmm.extract_mvn, 2)
+    with pytest.raises(ValueError):
+        gmm.extract_mvn(2)
 
 
 def test_extract_mvns():
@@ -621,9 +638,9 @@ def test_condition_numerical_issue():
                   2.1000e+01, 3.9345e+02, 6.4800e+00])
     gmm.apply_oracle_approximating_shrinkage(n_samples_eff=506)
     cond_gmm = gmm.condition(np.arange(len(x)), x)
-    assert_true(all(np.isfinite(cond_gmm.priors)))
-    assert_true(all(np.linalg.eigvals(cond_gmm.covariances[0] >= 0)))
-    assert_true(all(np.linalg.eigvals(cond_gmm.covariances[1] >= 0)))
+    assert all(np.isfinite(cond_gmm.priors))
+    assert all(np.linalg.eigvals(cond_gmm.covariances[0] >= 0))
+    assert all(np.linalg.eigvals(cond_gmm.covariances[1] >= 0))
 
 
 def test_from_samples_with_oas():
@@ -643,9 +660,9 @@ def test_from_samples_with_oas():
     cond = gmm.condition(np.array([0]), np.array([1.0]))
     for i in range(cond.n_components):
         eigvals = np.linalg.eigvals(cond.covariances[i])
-        assert_true(all(eigvals >= 0))
+        assert all(eigvals >= 0)
 
 
 def test_is_in_confidence_region_1d():
     gmm = GMM(n_components=1, priors=[1], means=[[0]], covariances=[[[1]]])
-    assert_true(gmm.is_in_confidence_region([0], 1.0))
+    assert gmm.is_in_confidence_region([0], 1.0)
