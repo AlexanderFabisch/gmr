@@ -1,5 +1,9 @@
 [run]
 branch = True
 source = gmr
+omit =
+    */setup.py
 [report]
-omit = gmr/utils.py
+omit =
+    gmr/utils.py
+    gmr/tests/*
