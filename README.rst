@@ -89,7 +89,7 @@ or have a look at the
 
 You can see the results of all the examples `here <https://github.com/AlexanderFabisch/gmr/tree/master/examples/examples-with-gmr.ipynb`_.
 
-You can find worked examples in `this Google Colab notebook <https://colab.research.google.com/drive/1fJK7z8Jhn04O6NxuPZMdLCsXT5HjvnyD?usp=sharing>`_.
+You can find worked examples in `this Google Colab notebook https://colab.research.google.com/drive/1fJK7z8Jhn04O6NxuPZMdLCsXT5HjvnyD?usp=sharing`_.
 
 How Does It Compare to scikit-learn?
 ------------------------------------
