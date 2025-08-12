@@ -185,7 +185,7 @@ class MVN(object):
         if self.norm is None:
             # Suppress a determinant of 0 to avoid numerical problems
             L_det = max(sp.linalg.det(L), np.finfo(L.dtype).eps)
-            self.norm = 0.5 / np.pi ** (0.5 * n_features) / L_det
+            self.norm = (2 * np.pi) ** (-0.5 * n_features) / L_det
 
         # Solve L x = (X - mean)^T for x with triangular L
         # (LL^T = Sigma), that is, x = L^T^-1 (X - mean)^T.
