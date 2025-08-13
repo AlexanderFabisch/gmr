@@ -70,7 +70,7 @@ help(gmr)
 or have a look at the
 [API documentation](https://alexanderfabisch.github.io/gmr/)
 
-You can see the results of all the examples [here](https://github.com/AlexanderFabisch/gmr/tree/master/examples/examples-with-gmr.ipynb>).
+You can see the results of all the examples [here](https://github.com/AlexanderFabisch/gmr/tree/master/examples/examples-with-gmr.ipynb).
 
 You can find worked examples in [this Google Colab notebook](https://colab.research.google.com/drive/1fJK7z8Jhn04O6NxuPZMdLCsXT5HjvnyD?usp=sharing).
 
