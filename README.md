@@ -227,7 +227,7 @@ pdoc gmr --html --skip-errors
 
 The first publication that presents the GMR algorithm is
 
-> [1] Z. Ghahramani, M. I. Jordan, "Supervised learning from incomplete data via an EM approach," Advances in Neural Information Processing Systems 6, 1994, pp. 120-127, http://papers.nips.cc/paper/767-supervised-learning-from-incomplete-data-via-an-em-approach
+> [1] Z. Ghahramani, M. I. Jordan, "Supervised learning from incomplete data via an EM approach," Advances in Neural Information Processing Systems 6, 1994, pp. 120-127, https://proceedings.neurips.cc/paper/1993/hash/f2201f5191c4e92cc5af043eebfd0946-Abstract.html
 
 but it does not use the term Gaussian Mixture Regression, which to my knowledge occurs first in
 
