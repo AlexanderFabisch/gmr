@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gmr"
+maintainers = [
+    { name="Alexander Fabisch", email="alexander.fabisch@dfki.de" },
+]
+authors = [
+    { name="Alexander Fabisch", email="alexander.fabisch@dfki.de" },
+]
+description = "Gaussian Mixture Regression"
+requires-python = ">=2.7"
+license = "BSD-3-Clause"
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Topic :: Software Development",
+    "Topic :: Scientific/Engineering",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 2",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.4",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = ["numpy", "scipy"]
+readme = "README.rst"
+dynamic = ["version"]
+
+[project.optional-dependencies]
+all = ["matplotlib", "scikit-learn", "svgpathtools"]
+test = ["pytest", "pytest-cov"]
+doc = ["pdoc3"]
+
+[project.urls]
+Homepage = "https://github.com/AlexanderFabisch/gmr"
+Issues = "https://github.com/AlexanderFabisch/gmr/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gmr"]
+
+[tool.setuptools.dynamic]
+version = {attr = "gmr.__version__"}
+readme = {file = ["README.rst"]}
