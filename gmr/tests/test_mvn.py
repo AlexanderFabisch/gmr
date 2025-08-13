@@ -8,7 +8,6 @@ from gmr import MVN, plot_error_ellipse
 mean = np.array([0.0, 1.0])
 covariance = np.array([[0.5, -1.0], [-1.0, 5.0]])
 
-
 class AxisStub:
     def __init__(self):
         self.count = 0
@@ -75,13 +74,18 @@ def test_sample_confidence_region():
 
 def test_probability_density():
     """Test PDF of MVN."""
+    mean = np.array([0.0, 1.0, 2.0])
+    covariance = np.array([[ 0.5, -1.0,  0.0],
+                           [-1.0,  5.0, -0.5],
+                           [ 0.0, -0.5,  1.0]])
+
     random_state = check_random_state(0)
     mvn = MVN(mean, covariance, random_state=random_state)
 
     x = np.linspace(-100, 100, 201)
-    X = np.vstack(list(map(np.ravel, np.meshgrid(x, x)))).T
+    X = np.vstack(list(map(np.ravel, np.meshgrid(x, x, x)))).T
     p = mvn.to_probability_density(X)
-    approx_int = np.sum(p) * ((x[-1] - x[0]) / 201) ** 2
+    approx_int = np.sum(p)
     assert np.abs(1.0 - approx_int) < 0.01
 
 
