@@ -85,8 +85,12 @@ def test_probability_density():
     x = np.linspace(-100, 100, 201)
     X = np.vstack(list(map(np.ravel, np.meshgrid(x, x, x)))).T
     p = mvn.to_probability_density(X)
-    approx_int = np.sum(p)
-    assert np.abs(1.0 - approx_int) < 0.01
+
+    bin_side_length = x[1] - x[0]
+    bin_volume = bin_side_length ** 3
+    approx_int = np.sum(p) * bin_volume
+
+    assert pytest.approx(approx_int, abs=1e-3) == 1.0
 
 
 def test_probability_density_without_noise():
