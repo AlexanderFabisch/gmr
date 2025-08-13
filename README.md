@@ -35,8 +35,7 @@ pip install gmr[all]
 You can also install `gmr` from source:
 
 ```bash
-python setup.py install
-# alternatively: pip install -e .
+pip install -e .
 ```
 
 ### Example
