@@ -77,7 +77,7 @@ You can find worked examples in [this Google Colab notebook](https://colab.resea
 ### How Does It Compare to scikit-learn?
 
 There is an implementation of Gaussian Mixture Models for clustering in
-[scikit-learn](https://scikit-learn.org/stable/modules/classes.html#module-sklearn.mixture>)
+[scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html)
 as well. Regression could not be easily integrated in the interface of
 sklearn. That is the reason why I put the code in a separate repository.
 It is possible to initialize GMR from sklearn though:
