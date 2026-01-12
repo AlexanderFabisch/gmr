@@ -617,8 +617,10 @@ random number generator.</dd>
             means[k] = conditioned.mean
             covariances[k] = conditioned.covariance
 
-            marginal_norm_factors[k], marginal_prior_exponents[k] = \
+            marginal_norm_factors[k], exponents = \
                 mvn.marginalize(indices).to_norm_factor_and_exponents(x)
+            # since x is exactly one sample, we know that len(exponents) == 1
+            marginal_prior_exponents[k] = exponents[0]
 
         priors = _safe_probability_density(
             self.priors * marginal_norm_factors,
@@ -883,8 +885,10 @@ from an array weights of shape (n_samples, n_components).</dd>
         means[k] = conditioned.mean
         covariances[k] = conditioned.covariance
 
-        marginal_norm_factors[k], marginal_prior_exponents[k] = \
+        marginal_norm_factors[k], exponents = \
             mvn.marginalize(indices).to_norm_factor_and_exponents(x)
+        # since x is exactly one sample, we know that len(exponents) == 1
+        marginal_prior_exponents[k] = exponents[0]
 
     priors = _safe_probability_density(
         self.priors * marginal_norm_factors,
