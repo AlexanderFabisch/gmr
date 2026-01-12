@@ -465,9 +465,9 @@ class GMM(object):
             means[k] = conditioned.mean
             covariances[k] = conditioned.covariance
 
-            norm_factor, exponents = \
+            marginal_norm_factors[k], exponents = \
                 mvn.marginalize(indices).to_norm_factor_and_exponents(x)
-            marginal_norm_factors[k] = norm_factor
+            # since x is exactly one sample, we know that len(exponents) == 1
             marginal_prior_exponents[k] = exponents[0]
 
         priors = _safe_probability_density(
