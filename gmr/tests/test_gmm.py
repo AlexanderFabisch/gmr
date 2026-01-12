@@ -158,6 +158,30 @@ def test_conditional_distribution():
     assert_array_almost_equal(conditional.covariances[1], np.array([[0.3]]))
 
 
+def test_conditional_distribution_input_formats():
+    """Test that GMM.condition accepts various input formats."""
+    random_state = check_random_state(0)
+
+    gmm = GMM(n_components=2, priors=np.array([0.5, 0.5]), means=means,
+              covariances=covariances, random_state=random_state)
+
+    # All these input formats should work and produce the same result
+    y_target = 1.0
+    input_formats = [
+        np.array([y_target]),      # 1D array
+        [y_target],                # list
+        [[y_target]],              # nested list
+        np.array([[y_target]]),    # 2D array
+    ]
+
+    reference = gmm.condition(np.array([1]), np.array([y_target]))
+
+    for x in input_formats:
+        conditional = gmm.condition(np.array([1]), x)
+        assert_array_almost_equal(conditional.means, reference.means)
+        assert_array_almost_equal(conditional.covariances, reference.covariances)
+
+
 def test_sample_confidence_region():
     """Test sampling from confidence region."""
     random_state = check_random_state(0)
